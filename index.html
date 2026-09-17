@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IDAD Engineer S.A.S. | Automatización, Domótica e Ingeniería Eléctrica</title>
+  <meta name="description" content="Ingeniería, diseño, automatización y domótica en Cúcuta y Colombia. Diagnóstico eléctrico, tableros certificados RETIE y energía solar." />
+  
+  <!-- Tipografía Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  
+  <!-- Hoja de estilos -->
+  <link rel="stylesheet" href="styles.css" />
+  
+  <!-- SDK de Supabase vía CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+  <!-- Navegación Superior -->
+  <header class="navbar">
+    <div class="container nav-container">
+      <a href="#" class="brand">
+        <div class="brand-logo">
+          <span class="logo-accent">⚡</span> IDAD
+        </div>
+        <div class="brand-text">
+          <span class="brand-title">ENGINEER</span>
+          <span class="brand-subtitle">Ingeniería & Automatización</span>
+        </div>
+      </a>
+
+      <nav class="nav-links" id="navLinks">
+        <a href="#servicios">Servicios</a>
+        <a href="#soluciones">Soluciones</a>
+        <a href="#nosotros">La Empresa</a>
+        <a href="#faq">Preguntas</a>
+        <a href="#contacto" class="btn-nav">Cotizar Proyecto</a>
+      </nav>
+
+      <button class="mobile-toggle" id="mobileToggle" aria-label="Abrir Menú">
+        ☰
+      </button>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="container hero-grid">
+      <div class="hero-content">
+        <div class="badge">
+          <span class="badge-dot"></span> Sede Quinta Oriental • Cúcuta, Norte de Santander
+        </div>
+        <h1 class="hero-title">
+          Ingeniería de alta precisión en <span class="gradient-text">Automatización</span>, Domótica y Potencia.
+        </h1>
+        <p class="hero-desc">
+          Intervenimos sobre mediciones y no sobre suposiciones. Diagnóstico eléctrico de calidad de energía, tableros certificados bajo norma RETIE, sistemas SCADA e integración domótica residencial e industrial.
+        </p>
+        <div class="hero-actions">
+          <a href="#contacto" class="btn btn-primary">Solicitar Diagnóstico</a>
+          <a href="https://wa.me/573184226261?text=Hola,%20deseo%20cotizar%20un%20proyecto%20con%20IDAD%20Engineer" target="_blank" class="btn btn-secondary">
+            Hablar por WhatsApp
+          </a>
+        </div>
+
+        <div class="hero-stats">
+          <div class="stat-item">
+            <span class="stat-number">100%</span>
+            <span class="stat-label">Conformidad RETIE</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">SCADA</span>
+            <span class="stat-label">Supervisión en Tiempo Real</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">NEMA 7</span>
+            <span class="stat-label">Áreas Clasificadas y Minería</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Consola / Dashboard Simulado de Telemetría -->
+      <div class="hero-visual">
+        <div class="telemetry-card">
+          <div class="telemetry-header">
+            <div class="telemetry-dots">
+              <span class="dot red"></span>
+              <span class="dot yellow"></span>
+              <span class="dot green"></span>
+            </div>
+            <span class="telemetry-id">CONTROLADOR CENTRAL - S7-1500 / IOT NODE</span>
+          </div>
+          <div class="telemetry-body">
+            <div class="status-indicator online">
+              <span class="pulse"></span> SISTEMA OPERATIVO Y TELEMETRÍA EN LÍNEA
+            </div>
+
+            <div class="metrics-grid">
+              <div class="metric-box">
+                <span class="metric-label">VARIADOR PRINCIPAL (VFD)</span>
+                <span class="metric-val" id="vfdFreq">58.4 Hz</span>
+                <span class="metric-sub">Consumo: 14.2 A</span>
+              </div>
+              <div class="metric-box">
+                <span class="metric-label">FACTOR DE POTENCIA</span>
+                <span class="metric-val text-green" id="powerFactor">0.98 FP</span>
+                <span class="metric-sub">Banco Condensadores ACTIVO</span>
+              </div>
+              <div class="metric-box">
+                <span class="metric-label">DOMÓTICA & HVAC</span>
+                <span class="metric-val text-cyan">21.5 °C</span>
+                <span class="metric-sub">Modo Confort Inteligente</span>
+              </div>
+              <div class="metric-box">
+                <span class="metric-label">GENERADOR / RESPALDO</span>
+                <span class="metric-val">STANDBY</span>
+                <span class="metric-sub">ATS Listo (100% Bat)</span>
+              </div>
+            </div>
+
+            <div class="telemetry-code">
+              <code>[INFO] Registro de armónicos THD (V): &lt; 2.1% (Dentro de estándar IEEE 519)</code>
+              <code>[DOMO] Escena 'Modo Industrial' activada en Zona Norte.</code>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Módulos de Servicios (Automatización, Domótica y Potencia) -->
+  <section class="services-section" id="servicios">
+    <div class="container">
+      <div class="section-title-wrap">
+        <span class="section-subtitle">CAPACIDADES TÉCNICAS</span>
+        <h2 class="section-title">Soluciones integrales de ingeniería aplicadas</h2>
+        <p class="section-desc">Diseñamos, suministramos, ensamblamos y ponemos en marcha sistemas para industrias, comercios y proyectos arquitectónicos de alta gama.</p>
+      </div>
+
+      <div class="services-grid">
+        <!-- Servicio 1: Automatización Industrial -->
+        <article class="service-card highlight">
+          <div class="service-icon">⚙️</div>
+          <span class="service-tag">INDUSTRIA & CONTROL</span>
+          <h3>Automatización & SCADA</h3>
+          <p>
+            Lógica de control robusta para líneas de producción continuas y plantas mineras. Programación de PLC, pantallas HMI, telemetría remota y supervisión SCADA para reducir tiempos de paro.
+          </p>
+          <ul class="service-list">
+            <li>Programación de PLCs (Siemens, Delta, Allen Bradley)</li>
+            <li>Variadores de frecuencia (VFD) y arrancadores suaves</li>
+            <li>Instrumentación (presión, termocuplas, nivel, encoders)</li>
+          </ul>
+        </article>
+
+        <!-- Servicio 2: Domótica e Inmótica -->
+        <article class="service-card highlight-cyan">
+          <div class="service-icon">🏡</div>
+          <span class="service-tag text-cyan">EDIFICIOS INTELIGENTES</span>
+          <h3>Domótica & Inmótica</h3>
+          <p>
+            Transformación de espacios residenciales y corporativos en entornos hiperconectados y eficientes. Control total de iluminación, accesos, seguridad y temperatura desde el smartphone.
+          </p>
+          <ul class="service-list">
+            <li>Control de iluminación inteligente y escenas arquitectónicas</li>
+            <li>Gestión automatizada de climatización y confort térmico</li>
+            <li>Cerraduras biométricas, alarmas y monitoreo unificado</li>
+          </ul>
+        </article>
+
+        <!-- Servicio 3: Energía Solar & Respaldo -->
+        <article class="service-card">
+          <div class="service-icon">☀️</div>
+          <span class="service-tag">CONTINUIDAD ENERGÉTICA</span>
+          <h3>Energía Solar & Plantas Eléctricas</h3>
+          <p>
+            Diseño e instalación de sistemas solares fotovoltaicos interconectados o aislados. Mantenimiento y puesta en marcha de generadores diésel con tableros de transferencia automática (ATS).
+          </p>
+          <ul class="service-list">
+            <li>Estudios de viabilidad solar basados en perfil de carga real</li>
+            <li>Sistemas UPS corporativos y estabilizadores industriales</li>
+            <li>Mantenimiento predictivo de plantas de generación diésel</li>
+          </ul>
+        </article>
+
+        <!-- Servicio 4: Diagnóstico y Calidad de Energía -->
+        <article class="service-card">
+          <div class="service-icon">📊</div>
+          <span class="service-tag">INGENIERÍA FORENSE</span>
+          <h3>Diagnóstico & Calidad Eléctrica</h3>
+          <p>
+            Identificación de patologías eléctricas que dañan equipos sensibles. Registros con analizadores de red trifásicos para eliminar penalizaciones por reactivos y evitar quemas imprevistas.
+          </p>
+          <ul class="service-list">
+            <li>Análisis de armónicos, desbalances y huecos de tensión</li>
+            <li>Medición de aislamiento en devanados de motores eléctricos</li>
+            <li>Estudios de resistividad de suelos y mallas de puesta a tierra</li>
+          </ul>
+        </article>
+
+        <!-- Servicio 5: Tableros Eléctricos & RETIE -->
+        <article class="service-card">
+          <div class="service-icon">🛡️</div>
+          <span class="service-tag">SEGURIDAD NORMATIVA</span>
+          <h3>Tableros & Certificación RETIE</h3>
+          <p>
+            Fabricación de tableros de potencia y centros de control de motores (CCM). Cajas y accesorios certificados NEMA 7 a prueba de explosión para entornos mineros y combustibles.
+          </p>
+          <ul class="service-list">
+            <li>Diseño 3D de envolventes y coordinación de protecciones</li>
+            <li>Cajas NEMA 7, apantallamientos y sistemas pararrayos</li>
+            <li>Acompañamiento y documentación para certificación RETIE</li>
+          </ul>
+        </article>
+
+        <!-- Servicio 6: Capacitación y Asesoría Técnica -->
+        <article class="service-card">
+          <div class="service-icon">🎓</div>
+          <span class="service-tag">TRANSFERENCIA DE SABER</span>
+          <h3>Capacitaciones Especializadas</h3>
+          <p>
+            Entrenamiento in-house para cuadrillas de mantenimiento, electricistas e ingenieros en plantas. Cursos prácticos con banco de pruebas para automatización y diagnóstico.
+          </p>
+          <ul class="service-list">
+            <li>Cursos de parametrización de variadores de frecuencia</li>
+            <li>Lógica Ladder y configuración de pantallas HMI</li>
+            <li>Seguridad eléctrica y mantenimiento preventivo industrial</li>
+          </ul>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- Sección de Filosofía / Diferencial Técnico -->
+  <section class="philosophy-section" id="nosotros">
+    <div class="container philosophy-grid">
+      <div class="philosophy-text">
+        <span class="section-subtitle">NUESTRO ENFOQUE</span>
+        <h2>En una planta, una falla eléctrica cuesta lo que cuesta el turno detenido.</h2>
+        <p>
+          En <strong>IDAD Engineer S.A.S.</strong> nos alejamos de las soluciones de catálogo genéricas cuando el problema requiere criterio de ingeniería. Acompañamos a la industria manufacturera, plantas de acopio de carbón, minería y construcciones residenciales de Cúcuta y Norte de Santander.
+        </p>
+        <p>
+          Nuestro compromiso es proyectar soluciones rentables, eficientes y seguras que eleven la productividad operativa y cuiden su inversión.
+        </p>
+        <div class="location-box">
+          <strong>Sede Principal:</strong> Calle 1 #11E-86, Quinta Oriental, Cúcuta.<br>
+          <strong>Línea de Atención:</strong> +57 318 422 6261 | comercial@idad.com.co
+        </div>
+      </div>
+      <div class="workflow-steps">
+        <div class="step-card">
+          <span class="step-num">01</span>
+          <div>
+            <h4>Medición y Diagnóstico Real</h4>
+            <p>Monitoreamos la instalación con instrumental calibrado antes de recomendar compras innecesarias.</p>
+          </div>
+        </div>
+        <div class="step-card">
+          <span class="step-num">02</span>
+          <div>
+            <h4>Ingeniería y Diseño en Plano</h4>
+            <p>Modelado 3D, cálculos mecánicos/eléctricos y selección coordinada de protecciones.</p>
+          </div>
+        </div>
+        <div class="step-card">
+          <span class="step-num">03</span>
+          <div>
+            <h4>Ejecución y Comisionamiento</h4>
+            <p>Montaje en campo bajo norma RETIE con pruebas exhaustivas antes de entrega a operación.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Formulario de Contacto conectado a Supabase -->
+  <section class="contact-section" id="contacto">
+    <div class="container">
+      <div class="contact-box">
+        <div class="contact-header">
+          <span class="section-subtitle">INICIA TU PROYECTO</span>
+          <h2>Cuéntanos qué necesitas resolver</h2>
+          <p>Te responderemos con una propuesta técnica a la medida. Si prefieres respuesta inmediata, escríbenos directamente a WhatsApp.</p>
+        </div>
+
+        <form id="leadForm" class="contact-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="nombre">Nombre completo o contacto *</label>
+              <input type="text" id="nombre" name="nombre" required placeholder="Ej. Ing. Carlos Pérez" />
+            </div>
+            <div class="form-group">
+              <label for="empresa">Empresa o Inmueble</label>
+              <input type="text" id="empresa" name="empresa" placeholder="Ej. Minera del Norte S.A.S. / Edificio Los Álamos" />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="email">Correo electrónico corporativo *</label>
+              <input type="email" id="email" name="email" required placeholder="carlos@empresa.com" />
+            </div>
+            <div class="form-group">
+              <label for="telefono">Teléfono / WhatsApp *</label>
+              <input type="tel" id="telefono" name="telefono" required placeholder="+57 310 000 0000" />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="ciudad">Ciudad o Municipio *</label>
+              <input type="text" id="ciudad" name="ciudad" value="Cúcuta" required />
+            </div>
+            <div class="form-group">
+              <label for="servicio_interes">Servicio de interés principal *</label>
+              <select id="servicio_interes" name="servicio_interes" required>
+                <option value="Automatizacion_Industrial">Automatización Industrial & SCADA</option>
+                <option value="Domotica_Inmotica">Domótica & Edificaciones Inteligentes</option>
+                <option value="Diagnostico_Calidad_Energia">Diagnóstico & Calidad de Energía</option>
+                <option value="Tableros_RETIE_NEMA7">Tableros Eléctricos, NEMA 7 & RETIE</option>
+                <option value="Energia_Solar_Respaldo">Energía Solar Fotovoltaica & Generadores</option>
+                <option value="Capacitaciones_Tecnicas">Cursos de Formación Técnica</option>
+                <option value="Mantenimiento_General">Mantenimiento Preventivo/Correctivo</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="descripcion_proyecto">Detalles de la necesidad técnica *</label>
+            <textarea id="descripcion_proyecto" name="descripcion_proyecto" rows="4" required placeholder="Indica el problema o alcance: número de motores, problemas de disparo de breakers, requerimientos domóticos, etc."></textarea>
+          </div>
+
+          <div class="form-privacy">
+            <input type="checkbox" id="acepto_politica" required />
+            <label for="acepto_politica">
+              Autorizo el tratamiento de mis datos personales según la Ley 1581 de Habeas Data con el fin exclusivo de recibir esta cotización técnica.
+            </label>
+          </div>
+
+          <!-- Mensaje de estado -->
+          <div id="formFeedback" class="form-feedback hidden"></div>
+
+          <button type="submit" id="submitBtn" class="btn btn-primary btn-block">
+            Enviar Solicitud a Ingeniería
+          </button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container footer-grid">
+      <div>
+        <div class="brand footer-brand">
+          <span class="logo-accent">⚡</span> IDAD ENGINEER S.A.S.
+        </div>
+        <p class="footer-copy">
+          Ingeniería, Diseño, Automatización y Domótica desde Cúcuta para Norte de Santander y toda Colombia.
+        </p>
+      </div>
+      <div>
+        <h4>Ubicación</h4>
+        <p>Calle 1 #11E-86, Barrio Quinta Oriental</p>
+        <p>Cúcuta, Norte de Santander, Colombia</p>
+      </div>
+      <div>
+        <h4>Contacto Directo</h4>
+        <p>Línea WhatsApp: +57 318 422 6261</p>
+        <p>Correo: comercial@idad.com.co</p>
+      </div>
+    </div>
+    <div class="container sub-footer">
+      <p>© 2026 IDAD Engineer S.A.S. Todos los derechos reservados.</p>
+    </div>
+  </footer>
+
+  <!-- Script de la aplicación -->
+  <script src="app.js"></script>
+</body>
+</html>
