@@ -1,0 +1,19 @@
+body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f9; margin: 0; }
+.header { background: #03045e; color: white; padding: 1rem; text-align: center; }
+.panel { max-width: 800px; margin: 2rem auto; padding: 2rem; background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+.hidden { display: none; }
+input { display: block; width: 100%; padding: 10px; margin-bottom: 10px; box-sizing: border-box; }
+button { background: #0077b6; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 4px; width: 100%; }
+button:hover { background: #023e8a; }
+.btn-logout { background: #d00000; width: auto; }
+.error { color: red; font-size: 0.9em; }
+.dashboard-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 1rem; margin-bottom: 1rem; }
+
+/* Tarjetas de lecturas */
+.grid { display: grid; gap: 1rem; }
+.card { padding: 1rem; border-radius: 8px; border-left: 6px solid grey; background: #fafafa; }
+.card.normal { border-left-color: #2b9348; }
+.card.alerta { border-left-color: #f4a261; background: #fff4e6; }
+.card.falla { border-left-color: #d00000; background: #ffe6e6; }
+.card-title { font-weight: bold; margin-bottom: 0.5rem; }
+.evidencia { display: inline-block; margin-top: 10px; color: #0077b6; text-decoration: none; font-size: 0.9em; }
