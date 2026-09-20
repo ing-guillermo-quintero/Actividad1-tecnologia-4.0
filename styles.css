@@ -54,6 +54,7 @@ h1, h2, h3, h4 {
 .gradient-text {
   background: linear-gradient(135deg, var(--color-orange), #fb923c);
   -webkit-background-clip: text;
+  background-clip: text; /* Agrega esta línea para solucionar la advertencia */
   -webkit-text-fill-color: transparent;
 }
 
