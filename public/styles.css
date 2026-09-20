@@ -1,5 +1,5 @@
 /* ==========================================================================
-   PALETA CROMÁTICA & VARIABLES DE DISEÑO (IDAD ENGINEER S.A.S.)
+  PALETA CROMÁTICA & VARIABLES DE DISEÑO (IDAD ENGINEER S.A.S.)
    ========================================================================== */
 :root {
   --bg-primary: #070d18;          /* Azul grafito ultra oscuro para el fondo base */
@@ -43,7 +43,7 @@ body {
 }
 
 /* ==========================================================================
-   TIPOGRAFiA Y UTILIDADES
+  TIPOGRAFiA Y UTILIDADES
    ========================================================================== */
 h1, h2, h3, h4 {
   font-weight: 700;
@@ -770,3 +770,13 @@ h1, h2, h3, h4 {
     grid-template-columns: 1fr;
   }
 }
+
+/* =========================================
+  SISTEMA DE PESTAÑAS (TABS)
+   ========================================= */
+.tabs-nav { display: flex; gap: 1rem; margin-bottom: 2rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem; overflow-x: auto; }
+.tab-btn { background: transparent; color: var(--text-muted); border: none; padding: 0.5rem 1rem; cursor: pointer; font-family: inherit; font-weight: 600; font-size: 0.9rem; transition: all 0.3s; }
+.tab-btn:hover { color: #fff; }
+.tab-btn.active { color: var(--color-orange); border-bottom: 2px solid var(--color-orange); }
+.tab-content { display: none; }
+.tab-content.active { display: block; }

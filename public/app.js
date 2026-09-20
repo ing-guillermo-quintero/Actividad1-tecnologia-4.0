@@ -31,14 +31,22 @@ document.addEventListener("DOMContentLoaded", async () => {
 // ==========================================================================
 // 3. CONTROL DE PANELES (LOGIN / DASHBOARD)
 // ==========================================================================
+// Nueva función para navegar entre pestañas
+window.cambiarPestana = function(tabId, btnElement) {
+  document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+  document.getElementById(tabId).classList.add('active');
+  btnElement.classList.add('active');
+};
+
 function actualizarUIAuth(session) {
   const loginPanel = document.getElementById("login-panel");
   const dashboardPanel = document.getElementById("dashboard-panel");
   const authSection = document.getElementById("authSection");
   const statusElem = document.getElementById("connectionStatus");
+  const btnLogin = document.getElementById("btnLogin"); // El botón que se quedaba pegado
 
   if (!session) {
-    // ESTADO: NO AUTENTICADO
     currentUser = null;
     loginPanel.classList.remove("hidden");
     dashboardPanel.classList.add("hidden");
@@ -46,18 +54,31 @@ function actualizarUIAuth(session) {
     statusElem.innerText = "● Esperando autenticación...";
     statusElem.style.color = "var(--text-muted)";
     
-    // Limpiar canales si cerró sesión
+    // SOLUCIÓN AL BUG: Restaurar el botón de login al cerrar sesión
+    if (btnLogin) {
+      btnLogin.disabled = false;
+      btnLogin.innerText = "Ingresar al SCADA";
+    }
+
     if (canalMonitoreo) supabaseClient.removeChannel(canalMonitoreo);
-    
   } else {
-    // ESTADO: AUTENTICADO
     currentUser = session.user;
     loginPanel.classList.add("hidden");
     dashboardPanel.classList.remove("hidden");
 
-    // Determinar rol por metadata o correo
     const userRole = currentUser.user_metadata?.rol || 
                      (currentUser.email.includes("supervisor") ? "supervisor" : "operador");
+
+    // LÓGICA DE PESTAÑAS Y PERFILES
+    const tabRegistroBtn = document.getElementById("tab-registro-btn");
+    if (userRole === "supervisor") {
+      tabRegistroBtn.style.display = "none"; // El supervisor ni siquiera ve el botón
+    } else {
+      tabRegistroBtn.style.display = "block"; // El operador sí ve la pestaña
+    }
+    
+    // Forzar siempre ir a la pestaña "En Vivo" al entrar
+    cambiarPestana('tab-vivo', document.querySelector('.tab-btn')); 
 
     authSection.innerHTML = `
       <div style="display: flex; align-items: center; gap: 1rem; font-size: 0.85rem; color: #fff;">
@@ -66,12 +87,10 @@ function actualizarUIAuth(session) {
       </div>
     `;
 
-    // Solo cargar datos y sockets cuando la sesión está validada
     cargarLecturas(filtroActual);
     conectarRealtime();
   }
 }
-
 async function ejecutarLogin(e) {
   e.preventDefault();
   const btn = document.getElementById("btnLogin");
