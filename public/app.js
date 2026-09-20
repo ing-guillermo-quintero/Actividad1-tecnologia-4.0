@@ -194,22 +194,60 @@ function renderTabla(lecturas) {
   });
 }
 
-function actualizarConsolaKPI(ultima) {
-  document.getElementById("kpiMaquina").innerText = ultima.codigo_maquina;
-  document.getElementById("kpiTemp").innerText = `${Number(ultima.temperatura).toFixed(1)} °C`;
-  document.getElementById("kpiVib").innerText = `${Number(ultima.nivel_vibracion).toFixed(2)} mm/s`;
-  document.getElementById("kpiEstado").innerText = ultima.estado.toUpperCase();
-  document.getElementById("kpiFecha").innerText = new Date(ultima.fecha_registro).toLocaleTimeString();
+function actualizarConsolaKPI(lecturasTotales) {
+  if (!lecturasTotales || lecturasTotales.length === 0) return;
 
-  const tempVal = Number(ultima.temperatura);
-  const esCritico = tempVal > 80 || ultima.estado.toLowerCase().includes("alerta") || ultima.estado.toLowerCase().includes("falla");
+  // Diccionario para almacenar la lectura más reciente de cada motor
+  const ultimasLecturas = {
+    'MOT-A1': null,
+    'MOT-B2': null,
+    'MOT-C3': null
+  };
 
+  // Como los datos vienen ordenados del más reciente al más antiguo,
+  // el primero que encontremos de cada motor es su estado actual.
+  for (let l of lecturasTotales) {
+    if (ultimasLecturas[l.codigo_maquina] === null) {
+      ultimasLecturas[l.codigo_maquina] = l;
+    }
+  }
+
+  let hayAlertaGlobal = false;
+  let mensajeAlerta = "";
+
+  // Actualizar las tarjetas individuales en la UI
+  Object.keys(ultimasLecturas).forEach(maquina => {
+    const data = ultimasLecturas[maquina];
+    if (data) {
+      document.getElementById(`temp-${maquina}`).innerText = `${Number(data.temperatura).toFixed(1)} °C`;
+      document.getElementById(`vib-${maquina}`).innerText = `Vibración: ${Number(data.nivel_vibracion).toFixed(2)} mm/s`;
+      
+      const estadoElem = document.getElementById(`estado-${maquina}`);
+      estadoElem.innerText = data.estado.toUpperCase();
+
+      // Colorear estados críticos
+      const tempVal = Number(data.temperatura);
+      const esCritico = tempVal > 80 || data.estado.toLowerCase().includes("alerta") || data.estado.toLowerCase().includes("falla");
+      
+      if (esCritico) {
+        estadoElem.style.color = "#ef4444";
+        document.getElementById(`temp-${maquina}`).style.color = "#ef4444";
+        hayAlertaGlobal = true;
+        mensajeAlerta += `[${maquina}: ${data.estado}] `;
+      } else {
+        estadoElem.style.color = "#10b981";
+        document.getElementById(`temp-${maquina}`).style.color = "var(--text-color)";
+      }
+    }
+  });
+
+  // Manejar el Banner de Alerta Superior
   const alertBanner = document.getElementById("alertBanner");
   const alertText = document.getElementById("alertText");
 
-  if (esCritico) {
+  if (hayAlertaGlobal) {
     alertBanner.classList.remove("hidden");
-    alertText.innerText = `¡ANOMALÍA EN ${ultima.codigo_maquina}! Temperatura: ${tempVal}°C | Estado: ${ultima.estado.toUpperCase()}`;
+    alertText.innerText = `¡ANOMALÍA DETECTADA! ${mensajeAlerta}`;
   } else {
     alertBanner.classList.add("hidden");
   }
