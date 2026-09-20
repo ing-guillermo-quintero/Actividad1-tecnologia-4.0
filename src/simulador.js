@@ -2,23 +2,29 @@ const supabase = require('./supabaseClient');
 
 const generarValor = (min, max) => parseFloat((Math.random() * (max - min) + min).toFixed(2));
 
+// Nombres exactos que coinciden con las tarjetas del dashboard
+const maquinas = ['MOT-A1', 'MOT-B2', 'MOT-C3'];
+
 const iniciarSimulacion = async () => {
     const temperatura = generarValor(70, 90);
     const nivel_vibracion = generarValor(2.0, 12.5);
+    
+    // Seleccionar una máquina al azar en cada ciclo
+    const codigoSeleccionado = maquinas[Math.floor(Math.random() * maquinas.length)];
     
     let estado = 'Operativo';
     let evidencia_url = null;
 
     if (temperatura >= 85 || nivel_vibracion >= 11.2) {
         estado = 'Falla';
-        evidencia_url = 'https://empresagg.com/evidencias/falla_critica_simulada.jpg';
+        evidencia_url = 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Warning.svg/512px-Warning.svg.png';
     } else if (temperatura >= 80 || nivel_vibracion >= 7.1) {
         estado = 'Alerta';
-        evidencia_url = 'https://empresagg.com/evidencias/alerta_preventiva_simulada.jpg';
+        evidencia_url = 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Warning.svg/512px-Warning.svg.png';
     }
 
     const payload = {
-        codigo_maquina: 'MOT-SIM-01',
+        codigo_maquina: codigoSeleccionado,
         temperatura: temperatura,
         nivel_vibracion: nivel_vibracion,
         estado: estado,
@@ -38,7 +44,7 @@ const iniciarAplicacion = async () => {
     console.log("🔐 Autenticando perfil Operador...");
     
     const { data, error } = await supabase.auth.signInWithPassword({
-        email: process.env.OPERADOR_EMAIL,
+        email: process.env.OPERADOR_EMAIL, // Asegúrate de tener estas variables en tu archivo .env
         password: process.env.OPERADOR_PASSWORD,
     });
 
