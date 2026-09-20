@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Empresa GG</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Importar Supabase JS desde CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <div class="header">
+        <h1>Telemetría IoT - Empresa GG</h1>
+    </div>
+
+    <!-- Panel de Inicio de Sesión -->
+    <div id="login-panel" class="panel">
+        <h2>Acceso Supervisor</h2>
+        <input type="email" id="email" placeholder="Correo electrónico" value="supervisor@empresagg.com">
+        <input type="password" id="password" placeholder="Contraseña">
+        <button onclick="iniciarSesion()">Ingresar al Sistema</button>
+        <p id="error-msg" class="error"></p>
+    </div>
+
+    <!-- Dashboard de Monitoreo -->
+    <div id="dashboard-panel" class="panel hidden">
+        <div class="dashboard-header">
+            <h2>📡 Monitoreo en Tiempo Real</h2>
+            <button onclick="cerrarSesion()" class="btn-logout">Cerrar Sesión</button>
+        </div>
+        <div id="alertas-container" class="grid">
+            <!-- Las lecturas aparecerán aquí -->
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

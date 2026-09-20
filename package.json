@@ -1,0 +1,25 @@
+{
+  "name": "idad-landing",
+  "version": "1.0.0",
+  "description": "**Sistema:** Monitoreo IoT / Telemetría Industrial  \r **Gestor:** Supabase (PostgreSQL 15+)  \r **Última actualización:** 17 de septiembre de 2026",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ing-guillermo-quintero/Actividad1-tecnologia-4.0.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/ing-guillermo-quintero/Actividad1-tecnologia-4.0/issues"
+  },
+  "homepage": "https://github.com/ing-guillermo-quintero/Actividad1-tecnologia-4.0#readme",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.116.0",
+    "dotenv": "^18.0.1"
+  }
+}
