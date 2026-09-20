@@ -59,7 +59,7 @@
       <strong>⚠️ ALERTA INDUSTRIAL DETECTADA:</strong> <span id="alertText">Monitoreo dentro de parámetros.</span>
     </div>
 
-    <!-- Consola de Telemetría y KPI en Vivo -->
+    <!-- Consola de Telemetría y KPI en Vivo (Visible para Operadores y Supervisores) -->
     <section class="telemetry-card" style="margin-bottom: 2.5rem;">
       <div class="telemetry-header">
         <div class="telemetry-dots">
@@ -67,39 +67,99 @@
           <span class="dot yellow"></span>
           <span class="dot green"></span>
         </div>
-        <span class="telemetry-id">TELEMETRÍA EN VIVO | NODO INDUSTRIAL IOT</span>
+        <span class="telemetry-id">TELEMETRÍA EN VIVO | ESTADO DE MOTORES</span>
       </div>
       <div class="telemetry-body">
         <div class="status-indicator online">
           <span class="pulse"></span> SISTEMA DE MONITOREO ACTIVO
         </div>
 
-        <div class="metrics-grid">
-          <div class="metric-box">
-            <span class="metric-label">ÚLTIMO EQUIPO REPORTADO</span>
-            <span class="metric-val" id="kpiMaquina">--</span>
-            <span class="metric-sub" id="kpiFecha">Sin datos recientes</span>
+        <!-- Tarjetas independientes por motor -->
+        <div class="metrics-grid" id="motores-grid">
+          
+          <!-- Motor A1 -->
+          <div class="metric-box" id="card-MOT-A1">
+            <span class="metric-label" style="font-weight: bold; color: var(--color-cyan);">MOT-A1 (PRINCIPAL)</span>
+            <span class="metric-val" id="temp-MOT-A1">-- °C</span>
+            <span class="metric-sub" id="vib-MOT-A1">Vibración: -- mm/s</span>
+            <span class="metric-sub" id="estado-MOT-A1" style="margin-top: 0.5rem; font-weight: bold;">--</span>
           </div>
-          <div class="metric-box">
-            <span class="metric-label">TEMPERATURA OPERATIVA</span>
-            <span class="metric-val" id="kpiTemp">-- °C</span>
-            <span class="metric-sub" id="kpiTempStatus">Umbral máximo: 80.0 °C</span>
+
+          <!-- Motor B2 -->
+          <div class="metric-box" id="card-MOT-B2">
+            <span class="metric-label" style="font-weight: bold; color: var(--color-cyan);">MOT-B2 (BOMBA)</span>
+            <span class="metric-val" id="temp-MOT-B2">-- °C</span>
+            <span class="metric-sub" id="vib-MOT-B2">Vibración: -- mm/s</span>
+            <span class="metric-sub" id="estado-MOT-B2" style="margin-top: 0.5rem; font-weight: bold;">--</span>
           </div>
-          <div class="metric-box">
-            <span class="metric-label">NIVEL DE VIBRACIÓN RMS</span>
-            <span class="metric-val text-cyan" id="kpiVib">-- mm/s</span>
-            <span class="metric-sub">Límite norma: 4.50 mm/s</span>
+
+          <!-- Motor C3 -->
+          <div class="metric-box" id="card-MOT-C3">
+            <span class="metric-label" style="font-weight: bold; color: var(--color-cyan);">MOT-C3 (COMPRESOR)</span>
+            <span class="metric-val" id="temp-MOT-C3">-- °C</span>
+            <span class="metric-sub" id="vib-MOT-C3">Vibración: -- mm/s</span>
+            <span class="metric-sub" id="estado-MOT-C3" style="margin-top: 0.5rem; font-weight: bold;">--</span>
           </div>
-          <div class="metric-box">
-            <span class="metric-label">ESTADO DE LA MÁQUINA</span>
-            <span class="metric-val" id="kpiEstado">--</span>
-            <span class="metric-sub" id="kpiEstadoSub">Condición actual</span>
-          </div>
+
         </div>
       </div>
     </section>
 
     <div class="philosophy-grid" style="align-items: flex-start; gap: 2rem;">
+      
+      <!-- Contenedor de Operador (SE OCULTARÁ PARA EL SUPERVISOR) -->
+      <div id="operator-controls">
+        <section class="service-card highlight">
+          <span class="service-tag">INGRESO DE DATOS</span>
+          <h3 style="margin-bottom: 0.5rem;">Registrar Lectura</h3>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+            Radicación manual de mediciones en caso de contingencia.
+          </p>
+
+          <form id="readingForm" class="contact-form">
+            <div class="form-group">
+              <label for="codigo_maquina">Código de Máquina *</label>
+              <select id="codigo_maquina" required>
+                <option value="MOT-A1">MOT-A1 (Motor Principal Línea 1)</option>
+                <option value="MOT-B2">MOT-B2 (Bomba Centrífuga)</option>
+                <option value="MOT-C3">MOT-C3 (Compresor de Aire)</option>
+              </select>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="temperatura">Temperatura (°C) *</label>
+                <input type="number" step="0.01" id="temperatura" required placeholder="Ej: 78.5" />
+              </div>
+              <div class="form-group">
+                <label for="nivel_vibracion">Vibración (mm/s) *</label>
+                <input type="number" step="0.01" id="nivel_vibracion" required placeholder="Ej: 2.15" />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="estado">Estado Operativo *</label>
+              <select id="estado" required>
+                <option value="Operativo">Operativo (Normal)</option>
+                <option value="Alerta">Alerta (Sobrecalentamiento / Vibración)</option>
+                <option value="Falla">Falla (Paro por avería)</option>
+                <option value="Mantenimiento">Mantenimiento (Intervención técnica)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="evidenciaFile">Evidencia Fotográfica (Novedad)</label>
+              <input type="file" id="evidenciaFile" accept="image/*" />
+            </div>
+
+            <div id="formStatus" class="form-feedback hidden"></div>
+            <button type="submit" id="btnSubmitReading" class="btn btn-primary btn-block">
+              Radicar Lectura en Supabase
+            </button>
+          </form>
+        </section>
+      </div>
+            
       <!-- Formulario de Registro Manual -->
       <section class="service-card highlight">
         <span class="service-tag">INGRESO DE DATOS (PASO 1 & 2)</span>
