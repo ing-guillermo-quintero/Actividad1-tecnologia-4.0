@@ -4,7 +4,8 @@
   "description": "Sistema de monitoreo IoT / telemetría industrial (Empresa GG) sobre Supabase",
   "main": "src/simulador.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node src/simulador.js",
+    "test": "bash scripts/check-seguridad.sh"
   },
   "repository": {
     "type": "git",

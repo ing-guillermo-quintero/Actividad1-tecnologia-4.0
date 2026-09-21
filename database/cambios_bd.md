@@ -4,3 +4,4 @@
 
 - **20-Sept-2026**: Se resolvió SEC-03. Eliminación y recreación de tabla `perfiles`, función `rol_actual()` y políticas RLS estrictas en `lecturas_maquina` para autorizar SELECT a ambos roles e INSERT únicamente a operadores.
 
+- **21-Sept-2026**: Se ejecutaron `04_evidencia_path.sql`, `05_storage_policies.sql` y `03b_rls_endurecimiento.sql` para migrar evidencias a firmas seguras, purgar políticas RLS antiguas, añadir políticas restrictivas al bucket de Storage y proteger la función `rol_actual()`.
