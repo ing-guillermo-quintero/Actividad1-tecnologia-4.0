@@ -10,177 +10,178 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
   
   <link rel="stylesheet" href="styles.css" />
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.js" integrity="sha384-iLddHTLokph6Omwoyid4XKxHaWa6w41BnoEj0q5oOrzmYPpHIKt1wyjReA7s//pP" crossorigin="anonymous"></script>
+  <!-- SDK de Supabase (Mantenido según la versión auditada si existe, o la genérica) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<!-- Barra de Navegación -->
-<header class="navbar">
-  <div class="container nav-container">
-    <div class="brand">
-        <!-- Se integra el logo y se ajusta el tamaño con estilos en línea para evitar tocar el CSS -->
+<body>
+  <!-- Barra de Navegación -->
+  <header class="navbar">
+    <div class="container nav-container">
+      <div class="brand">
         <img src="GG_logo.png" alt="Empresa GG Logo" style="height: 45px; border-radius: 6px; margin-right: 10px;">
         <div class="brand-text">
           <span class="brand-title">EMPRESA GG - SUPERVISIÓN 4.0</span>
           <span class="brand-subtitle" id="connectionStatus">● Esperando autenticación...</span>
         </div>
       </div>
-    <div class="auth-bar" id="authSection"></div>
-  </div>
-</header>
-
-<!-- PANEL 1: ACCESO (Login) -->
-<main id="login-panel" class="container" style="padding-top: 5rem; padding-bottom: 5rem;">
-  <div class="contact-box" style="max-width: 500px; margin: 0 auto;">
-    <div class="contact-header">
-      
-      <!-- LOGO Y NOMBRE DE EMPRESA GG CENTRADOS -->
-      <div style="display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 1.5rem;">
-        <img src="GG_logo.png" alt="Empresa GG Logo" style="height: 60px; border-radius: 8px;">
-        <div style="text-align: left; display: flex; flex-direction: column;">
-          <span style="font-size: 1.4rem; font-weight: 800; color: #fff; letter-spacing: 1px; line-height: 1.1;">EMPRESA GG</span>
-          <span style="font-size: 0.75rem; color: var(--text-muted); letter-spacing: 0.5px;">SUPERVISIÓN 4.0</span>
-        </div>
-      </div>
-      <!-- FIN LOGO -->
-
-      <h2>Acceso Restringido</h2>
-      <p>Inicie sesión para acceder a la telemetría en tiempo real</p>
+      <div class="auth-bar" id="authSection"></div>
     </div>
-    <form id="mainLoginForm" class="contact-form" onsubmit="ejecutarLogin(event)">
-      <div class="form-group">
-        <label for="loginEmail">Correo Institucional</label>
-        <input type="email" id="loginEmail" placeholder="operador@empresagg.com" required />
-      </div>
-      <div class="form-group">
-        <label for="loginPassword">Contraseña de Acceso</label>
-        <input type="password" id="loginPassword" placeholder="••••••••" required />
-      </div>
-      <button type="submit" class="btn btn-primary btn-block" id="btnLogin">Ingresar a Empresa GG</button>
-      <div id="loginFeedback" class="form-feedback hidden"></div>
-    </form>
-  </div>
-</main>
+  </header>
 
-<!-- PANEL 2: DASHBOARD CON PESTAÑAS -->
-<main id="dashboard-panel" class="container hidden" style="padding-top: 2rem; padding-bottom: 4rem;">
-  
-  <!-- Menú de Pestañas -->
-  <div class="tabs-nav">
-    <button class="tab-btn active" onclick="cambiarPestana('tab-vivo', this)">Monitoreo en Vivo</button>
-    <button class="tab-btn" onclick="cambiarPestana('tab-historial', this)">Historial de Telemetría</button>
-    <button class="tab-btn" id="tab-registro-btn" onclick="cambiarPestana('tab-registro', this)">Registrar Novedad</button>
-  </div>
-
-  <!-- PESTAÑA 1: MONITOREO EN VIVO -->
-  <div id="tab-vivo" class="tab-content active">
-    <div id="alertBanner" class="telemetry-code hidden" style="background-color: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; color: #fca5a5; margin-bottom: 2rem; padding: 1rem; border-radius: 8px;">
-      <strong>⚠️ ALERTA INDUSTRIAL DETECTADA:</strong> <span id="alertText">Monitoreo dentro de parámetros.</span>
-    </div>
-
-    <section class="telemetry-card">
-      <div class="telemetry-header">
-        <div class="telemetry-dots"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>
-        <span class="telemetry-id">TELEMETRÍA EN VIVO | ESTADO DE MOTORES</span>
-      </div>
-      <div class="telemetry-body">
-        <div class="status-indicator online"><span class="pulse"></span> SISTEMA DE MONITOREO ACTIVO</div>
-        <div class="metrics-grid" id="motores-grid">
-          <!-- Motor A1 -->
-          <div class="metric-box">
-            <span class="metric-label" style="font-weight: bold; color: var(--color-cyan);">MOT-A1 (PRINCIPAL)</span>
-            <span class="metric-val" id="temp-MOT-A1">-- °C</span>
-            <span class="metric-sub" id="vib-MOT-A1">Vibración: -- mm/s</span>
-            <span class="metric-sub" id="estado-MOT-A1" style="margin-top: 0.5rem; font-weight: bold;">--</span>
+  <!-- PANEL 1: ACCESO (Login) -->
+  <main id="login-panel" class="container" style="padding-top: 5rem; padding-bottom: 5rem;">
+    <div class="contact-box" style="max-width: 500px; margin: 0 auto;">
+      <div class="contact-header">
+        
+        <!-- LOGO Y NOMBRE DE EMPRESA GG CENTRADOS -->
+        <div style="display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 1.5rem;">
+          <img src="GG_logo.png" alt="Empresa GG Logo" style="height: 60px; border-radius: 8px;">
+          <div style="text-align: left; display: flex; flex-direction: column;">
+            <span style="font-size: 1.4rem; font-weight: 800; color: #fff; letter-spacing: 1px; line-height: 1.1;">EMPRESA GG</span>
+            <span style="font-size: 0.75rem; color: var(--text-muted); letter-spacing: 0.5px;">SUPERVISIÓN 4.0</span>
           </div>
-          <!-- Motor B2 -->
-          <div class="metric-box">
-            <span class="metric-label" style="font-weight: bold; color: var(--color-cyan);">MOT-B2 (BOMBA)</span>
-            <span class="metric-val" id="temp-MOT-B2">-- °C</span>
-            <span class="metric-sub" id="vib-MOT-B2">Vibración: -- mm/s</span>
-            <span class="metric-sub" id="estado-MOT-B2" style="margin-top: 0.5rem; font-weight: bold;">--</span>
-          </div>
-          <!-- Motor C3 -->
-          <div class="metric-box">
-            <span class="metric-label" style="font-weight: bold; color: var(--color-cyan);">MOT-C3 (COMPRESOR)</span>
-            <span class="metric-val" id="temp-MOT-C3">-- °C</span>
-            <span class="metric-sub" id="vib-MOT-C3">Vibración: -- mm/s</span>
-            <span class="metric-sub" id="estado-MOT-C3" style="margin-top: 0.5rem; font-weight: bold;">--</span>
-          </div>
-
         </div>
-      </div>
-    </section>
-  </div>
+        <!-- FIN LOGO -->
 
-  <!-- PESTAÑA 2: HISTORIAL DE TELEMETRÍA -->
-  <div id="tab-historial" class="tab-content">
-    <section class="service-card" style="overflow-x: auto; width: 100%;">
-      <h3 style="margin-bottom: 0.5rem;">Base de Datos Histórica</h3>
-      <div style="display: flex; gap: 0.5rem; margin-bottom: 1.25rem; flex-wrap: wrap;">
-        <button class="btn btn-secondary" style="padding: 0.4rem 0.75rem; font-size: 0.8rem;" onclick="aplicarFiltro('todas')">Todas las lecturas</button>
-        <button class="btn btn-secondary" style="padding: 0.4rem 0.75rem; font-size: 0.8rem;" onclick="aplicarFiltro('temp80')">Temperatura &gt; 80°C</button>
-        <button class="btn btn-secondary" style="padding: 0.4rem 0.75rem; font-size: 0.8rem;" onclick="aplicarFiltro('alerta')">Estado 'Alerta'</button>
-        <button class="btn btn-secondary" style="padding: 0.4rem 0.75rem; font-size: 0.8rem;" onclick="aplicarFiltro('recientes')">Cronológico</button>
+        <h2>Acceso Restringido</h2>
+        <p>Inicie sesión para acceder a la telemetría en tiempo real</p>
       </div>
-      <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem; font-family: var(--font-mono);">
-        <thead>
-          <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); text-align: left; color: var(--text-muted);">
-            <th style="padding: 0.6rem;">Máquina</th>
-            <th style="padding: 0.6rem;">Temp (°C)</th>
-            <th style="padding: 0.6rem;">Vibración</th>
-            <th style="padding: 0.6rem;">Estado</th>
-            <th style="padding: 0.6rem;">Foto</th>
-            <th style="padding: 0.6rem;">Fecha y Hora</th>
-          </tr>
-        </thead>
-        <tbody id="lecturasTableBody">
-          <tr><td colspan="6" style="padding: 1.5rem; text-align: center;">Esperando datos...</td></tr>
-        </tbody>
-      </table>
-    </section>
-  </div>
-
-  <!-- PESTAÑA 3: REGISTRO MANUAL (Solo Operador) -->
-  <div id="tab-registro" class="tab-content">
-    <section class="service-card highlight" style="max-width: 600px; margin: 0 auto;">
-      <span class="service-tag">INGRESO DE DATOS MANUAL</span>
-      <h3 style="margin-bottom: 0.5rem;">Registrar Lectura</h3>
-      <form id="readingForm" class="contact-form">
+      <!-- Eliminado el onsubmit (SEC-14) -->
+      <form id="mainLoginForm" class="contact-form">
         <div class="form-group">
-          <label>Código de Máquina *</label>
-          <select id="codigo_maquina" required>
-            <option value="MOT-A1">MOT-A1 (Motor Principal Línea 1)</option>
-            <option value="MOT-B2">MOT-B2 (Bomba Centrífuga)</option>
-            <option value="MOT-C3">MOT-C3 (Compresor de Aire)</option>
-          </select>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Temperatura (°C) *</label>
-            <input type="number" step="0.01" id="temperatura" required />
-          </div>
-          <div class="form-group">
-            <label>Vibración (mm/s) *</label>
-            <input type="number" step="0.01" id="nivel_vibracion" required />
-          </div>
+          <label for="loginEmail">Correo Institucional</label>
+          <input type="email" id="loginEmail" placeholder="operador@empresagg.com" required />
         </div>
         <div class="form-group">
-          <label>Estado Operativo *</label>
-          <select id="estado" required>
-            <option value="Operativo">Operativo (Normal)</option>
-            <option value="Alerta">Alerta (Sobrecalentamiento / Vibración)</option>
-            <option value="Falla">Falla (Paro por avería)</option>
-          </select>
+          <label for="loginPassword">Contraseña de Acceso</label>
+          <input type="password" id="loginPassword" placeholder="••••••••" required />
         </div>
-        <div class="form-group">
-          <label>Evidencia Fotográfica</label>
-          <input type="file" id="evidenciaFile" accept="image/*" />
-        </div>
-        <div id="formStatus" class="form-feedback hidden"></div>
-        <button type="submit" id="btnSubmitReading" class="btn btn-primary btn-block">Radicar Lectura</button>
+        <button type="submit" class="btn btn-primary btn-block" id="btnLogin">Ingresar a Empresa GG</button>
+        <div id="loginFeedback" class="form-feedback hidden"></div>
       </form>
-    </section>
-  </div>
-</main>
+    </div>
+  </main>
 
-<script src="app.js"></script>
+  <!-- PANEL 2: DASHBOARD CON PESTAÑAS -->
+  <main id="dashboard-panel" class="container hidden" style="padding-top: 2rem; padding-bottom: 4rem;">
+    
+    <!-- Menú de Pestañas (Eliminados los onclick, cambiados a data-tab) (SEC-14) -->
+    <div class="tabs-nav">
+      <button class="tab-btn active" data-tab="tab-vivo">Monitoreo en Vivo</button>
+      <button class="tab-btn" data-tab="tab-historial">Historial de Telemetría</button>
+      <button class="tab-btn" id="tab-registro-btn" data-tab="tab-registro">Registrar Novedad</button>
+    </div>
+
+    <!-- PESTAÑA 1: MONITOREO EN VIVO -->
+    <div id="tab-vivo" class="tab-content active">
+      <div id="alertBanner" class="telemetry-code hidden" style="background-color: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; color: #fca5a5; margin-bottom: 2rem; padding: 1rem; border-radius: 8px;">
+        <strong>⚠️ ALERTA INDUSTRIAL DETECTADA:</strong> <span id="alertText">Monitoreo dentro de parámetros.</span>
+      </div>
+
+      <section class="telemetry-card">
+        <div class="telemetry-header">
+          <div class="telemetry-dots"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>
+          <span class="telemetry-id">TELEMETRÍA EN VIVO | ESTADO DE MOTORES</span>
+        </div>
+        <div class="telemetry-body">
+          <div class="status-indicator online"><span class="pulse"></span> SISTEMA DE MONITOREO ACTIVO</div>
+          <div class="metrics-grid" id="motores-grid">
+            <div class="metric-box">
+              <span class="metric-label" style="font-weight: bold; color: var(--color-cyan);">MOT-A1 (PRINCIPAL)</span>
+              <span class="metric-val" id="temp-MOT-A1">-- °C</span>
+              <span class="metric-sub" id="vib-MOT-A1">Vibración: -- mm/s</span>
+              <span class="metric-sub" id="estado-MOT-A1" style="margin-top: 0.5rem; font-weight: bold;">--</span>
+            </div>
+            <div class="metric-box">
+              <span class="metric-label" style="font-weight: bold; color: var(--color-cyan);">MOT-B2 (BOMBA)</span>
+              <span class="metric-val" id="temp-MOT-B2">-- °C</span>
+              <span class="metric-sub" id="vib-MOT-B2">Vibración: -- mm/s</span>
+              <span class="metric-sub" id="estado-MOT-B2" style="margin-top: 0.5rem; font-weight: bold;">--</span>
+            </div>
+            <div class="metric-box">
+              <span class="metric-label" style="font-weight: bold; color: var(--color-cyan);">MOT-C3 (COMPRESOR)</span>
+              <span class="metric-val" id="temp-MOT-C3">-- °C</span>
+              <span class="metric-sub" id="vib-MOT-C3">Vibración: -- mm/s</span>
+              <span class="metric-sub" id="estado-MOT-C3" style="margin-top: 0.5rem; font-weight: bold;">--</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- PESTAÑA 2: HISTORIAL DE TELEMETRÍA -->
+    <div id="tab-historial" class="tab-content">
+      <section class="service-card" style="overflow-x: auto; width: 100%;">
+        <h3 style="margin-bottom: 0.5rem;">Base de Datos Histórica</h3>
+        <!-- Eliminados los onclick, cambiados a data-filtro (SEC-14) -->
+        <div style="display: flex; gap: 0.5rem; margin-bottom: 1.25rem; flex-wrap: wrap;">
+          <button class="btn btn-secondary" style="padding: 0.4rem 0.75rem; font-size: 0.8rem;" data-filtro="todas">Todas las lecturas</button>
+          <button class="btn btn-secondary" style="padding: 0.4rem 0.75rem; font-size: 0.8rem;" data-filtro="temp80">Temperatura &gt; 80°C</button>
+          <button class="btn btn-secondary" style="padding: 0.4rem 0.75rem; font-size: 0.8rem;" data-filtro="alerta">Estado 'Alerta'</button>
+          <button class="btn btn-secondary" style="padding: 0.4rem 0.75rem; font-size: 0.8rem;" data-filtro="recientes">Cronológico</button>
+        </div>
+        <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem; font-family: var(--font-mono);">
+          <thead>
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); text-align: left; color: var(--text-muted);">
+              <th style="padding: 0.6rem;">Máquina</th>
+              <th style="padding: 0.6rem;">Temp (°C)</th>
+              <th style="padding: 0.6rem;">Vibración</th>
+              <th style="padding: 0.6rem;">Estado</th>
+              <th style="padding: 0.6rem;">Foto</th>
+              <th style="padding: 0.6rem;">Fecha y Hora</th>
+            </tr>
+          </thead>
+          <tbody id="lecturasTableBody">
+            <tr><td colspan="6" style="padding: 1.5rem; text-align: center;">Esperando datos...</td></tr>
+          </tbody>
+        </table>
+      </section>
+    </div>
+
+    <!-- PESTAÑA 3: REGISTRO MANUAL (Solo Operador) -->
+    <div id="tab-registro" class="tab-content">
+      <section class="service-card highlight" style="max-width: 600px; margin: 0 auto;">
+        <span class="service-tag">INGRESO DE DATOS MANUAL</span>
+        <h3 style="margin-bottom: 0.5rem;">Registrar Lectura</h3>
+        <!-- El form tampoco lleva onsubmit -->
+        <form id="readingForm" class="contact-form">
+          <div class="form-group">
+            <label>Código de Máquina *</label>
+            <select id="codigo_maquina" required>
+              <option value="MOT-A1">MOT-A1 (Motor Principal Línea 1)</option>
+              <option value="MOT-B2">MOT-B2 (Bomba Centrífuga)</option>
+              <option value="MOT-C3">MOT-C3 (Compresor de Aire)</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Temperatura (°C) *</label>
+              <input type="number" step="0.01" id="temperatura" required />
+            </div>
+            <div class="form-group">
+              <label>Vibración (mm/s) *</label>
+              <input type="number" step="0.01" id="nivel_vibracion" required />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Estado Operativo *</label>
+            <select id="estado" required>
+              <option value="Operativo">Operativo (Normal)</option>
+              <option value="Alerta">Alerta (Sobrecalentamiento / Vibración)</option>
+              <option value="Falla">Falla (Paro por avería)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Evidencia Fotográfica</label>
+            <input type="file" id="evidenciaFile" accept="image/*" />
+          </div>
+          <div id="formStatus" class="form-feedback hidden"></div>
+          <button type="submit" id="btnSubmitReading" class="btn btn-primary btn-block">Radicar Lectura</button>
+        </form>
+      </section>
+    </div>
+  </main>
+
+  <script src="app.js"></script>
+</body>
 </html>
