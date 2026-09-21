@@ -1,62 +1,35 @@
-const supabase = require('./supabaseClient');
+require('dotenv').config();
+const { supabaseClient } = require('./supabaseClient');
 
-const generarValor = (min, max) => parseFloat((Math.random() * (max - min) + min).toFixed(2));
+const maquinas = ['MOT-A1', 'MOT-B2', 'MOT-C3', 'MOT-SIM-01'];
 
-// Nombres exactos que coinciden con las tarjetas del dashboard
-const maquinas = ['MOT-A1', 'MOT-B2', 'MOT-C3'];
+async function generarLectura() {
+  const codigoSeleccionado = maquinas[Math.floor(Math.random() * maquinas.length)];
+  const temperatura = parseFloat((Math.random() * (95 - 40) + 40).toFixed(2));
+  const nivel_vibracion = parseFloat((Math.random() * (15 - 1) + 1).toFixed(2));
+  
+  // SEC-12: Lógica de estados y remoción de evidencia_url
+  let estado = 'Operativo';
+  if (temperatura >= 85 || nivel_vibracion >= 11.2) estado = 'Falla';
+  else if (temperatura >= 80 || nivel_vibracion >= 7.1) estado = 'Alerta';
 
-const iniciarSimulacion = async () => {
-    const temperatura = generarValor(70, 90);
-    const nivel_vibracion = generarValor(2.0, 12.5);
-    
-    // Seleccionar una máquina al azar en cada ciclo
-    const codigoSeleccionado = maquinas[Math.floor(Math.random() * maquinas.length)];
-    
-    let estado = 'Operativo';
-    let evidencia_url = null;
+  const payload = { 
+    codigo_maquina: codigoSeleccionado, 
+    temperatura, 
+    nivel_vibracion, 
+    estado 
+  };
 
-if (temperatura >= 85 || nivel_vibracion >= 11.2) {
-    estado = 'Falla';
-    // Placa roja de error crítico
-    evidencia_url = 'https://placehold.co/600x400/EF4444/FFFFFF?text=ALERTA+CRITICA:+FALLA+DE+MOTOR';
-} else if (temperatura >= 80 || nivel_vibracion >= 7.1) {
-    estado = 'Alerta';
-    // Placa naranja de advertencia
-    evidencia_url = 'https://placehold.co/600x400/F59E0B/FFFFFF?text=ADVERTENCIA:+PARAMETROS+ELEVADOS';
+  const { data, error } = await supabaseClient
+    .from('lecturas_maquina')
+    .insert([payload]);
+
+  if (error) {
+    console.error(`[Error] al enviar lectura de ${codigoSeleccionado}:`, error.message);
+  } else {
+    console.log(`[OK] Lectura enviada -> ${codigoSeleccionado} | Temp: ${temperatura}°C | Vib: ${nivel_vibracion}mm/s | Estado: ${estado}`);
+  }
 }
 
-    const payload = {
-        codigo_maquina: codigoSeleccionado,
-        temperatura: temperatura,
-        nivel_vibracion: nivel_vibracion,
-        estado: estado,
-        evidencia_url: evidencia_url
-    };
-
-    const { error } = await supabase.from('lecturas_maquina').insert([payload]);
-
-    if (error) {
-        console.error('❌ Error al insertar:', error.message);
-    } else {
-        console.log(`📡 [${new Date().toLocaleTimeString()}] Máquina: ${payload.codigo_maquina} | Temp: ${payload.temperatura}°C | Vib: ${payload.nivel_vibracion} mm/s | Estado: ${payload.estado}`);
-    }
-};
-
-const iniciarAplicacion = async () => {
-    console.log("🔐 Autenticando perfil Operador...");
-    
-    const { data, error } = await supabase.auth.signInWithPassword({
-        email: process.env.OPERADOR_EMAIL, // Asegúrate de tener estas variables en tu archivo .env
-        password: process.env.OPERADOR_PASSWORD,
-    });
-
-    if (error) {
-        console.error("❌ Error de autenticación:", error.message);
-        return;
-    }
-
-    console.log("✅ Sesión de Operador iniciada. Arrancando motores virtuales...");
-    setInterval(iniciarSimulacion, 5000);
-};
-
-iniciarAplicacion();
+console.log("Iniciando Simulador IoT (Empresa GG)...");
+setInterval(generarLectura, 5000);

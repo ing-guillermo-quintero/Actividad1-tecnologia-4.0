@@ -38,6 +38,18 @@ El proyecto sigue una arquitectura **Serverless** y de cliente ligero (Thin Clie
 4.  **Registro de Novedades (Telemetría Manual):**
     *   Formulario de ingreso de datos para operadores.
     *   Carga de imágenes directo al bucket de Supabase (`evidencias`) generando URLs públicas automáticas.
+    - Carga de imágenes al bucket **privado** `evidencias` (ruta `<uid>/<uuid>.<ext>`); la aplicación genera URLs firmadas de 5 minutos para visualizarlas.
+
+        ### Instalación Backend (Supabase)
+        Ejecutar en orden en el SQL Editor:
+        1. `database/02_seguridad.sql`
+        2. `database/03b_rls_endurecimiento.sql`
+        3. `database/04_evidencia_path.sql`
+        4. `database/05_storage_policies.sql`
+        5. `database/06_asignar_roles.sql`
+
+        * Registro público de usuarios **desactivado** en Supabase Auth.
+        * RLS activo y Bucket `evidencias` **privado** (5 MB, solo JPG/PNG/WebP).
     *   Prevención de envíos múltiples (deshabilitación de botón) y feedback visual de éxito/error.
 
 ---
@@ -86,3 +98,4 @@ Para poner en marcha este proyecto en un entorno local o productivo:
    * Storage Bucket llamado `evidencias` configurado como público.
    * Políticas RLS (Row Level Security) configuradas para permitir lectura/escritura según los perfiles de los usuarios.
 3. Desplegar mediante cualquier servidor estático (Vercel, Netlify, GitHub Pages, o un servidor Apache/Nginx clásico), ya que la aplicación es 100% frontend estático interactuando con una API en la nube.
+
