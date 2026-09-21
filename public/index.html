@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SCADA Cloud | Supervisión de Maquinaria 4.0</title>
+  <title>Empresa GG | Supervisión de Maquinaria 4.0</title>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,12 +16,13 @@
 <header class="navbar">
   <div class="container nav-container">
     <div class="brand">
-      <div class="brand-logo"><span class="logo-accent">⚡</span> SCADA-CLOUD</div>
-      <div class="brand-text">
-        <span class="brand-title">SUPERVISIÓN INDUSTRIAL 4.0</span>
-        <span class="brand-subtitle" id="connectionStatus">● Esperando autenticación...</span>
+        <!-- Se integra el logo y se ajusta el tamaño con estilos en línea para evitar tocar el CSS -->
+        <img src="GG_logo.png" alt="Empresa GG Logo" style="height: 45px; border-radius: 6px; margin-right: 10px;">
+        <div class="brand-text">
+          <span class="brand-title">EMPRESA GG - SUPERVISIÓN 4.0</span>
+          <span class="brand-subtitle" id="connectionStatus">● Esperando autenticación...</span>
+        </div>
       </div>
-    </div>
     <div class="auth-bar" id="authSection"></div>
   </div>
 </header>
@@ -30,6 +31,17 @@
 <main id="login-panel" class="container" style="padding-top: 5rem; padding-bottom: 5rem;">
   <div class="contact-box" style="max-width: 500px; margin: 0 auto;">
     <div class="contact-header">
+      
+      <!-- LOGO Y NOMBRE DE EMPRESA GG CENTRADOS -->
+      <div style="display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 1.5rem;">
+        <img src="GG_logo.png" alt="Empresa GG Logo" style="height: 60px; border-radius: 8px;">
+        <div style="text-align: left; display: flex; flex-direction: column;">
+          <span style="font-size: 1.4rem; font-weight: 800; color: #fff; letter-spacing: 1px; line-height: 1.1;">EMPRESA GG</span>
+          <span style="font-size: 0.75rem; color: var(--text-muted); letter-spacing: 0.5px;">SUPERVISIÓN 4.0</span>
+        </div>
+      </div>
+      <!-- FIN LOGO -->
+
       <h2>Acceso Restringido</h2>
       <p>Inicie sesión para acceder a la telemetría en tiempo real</p>
     </div>
@@ -42,7 +54,7 @@
         <label for="loginPassword">Contraseña de Acceso</label>
         <input type="password" id="loginPassword" placeholder="••••••••" required />
       </div>
-      <button type="submit" class="btn btn-primary btn-block" id="btnLogin">Ingresar al SCADA</button>
+      <button type="submit" class="btn btn-primary btn-block" id="btnLogin">Ingresar a Empresa GG</button>
       <div id="loginFeedback" class="form-feedback hidden"></div>
     </form>
   </div>

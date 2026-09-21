@@ -52,9 +52,10 @@ function actualizarUIAuth(session) {
     statusElem.innerText = "● Esperando autenticación...";
     statusElem.style.color = "var(--text-muted)";
     
+    // SOLUCIÓN AL BUG: Restaurar el botón de login al cerrar sesión
     if (btnLogin) {
       btnLogin.disabled = false;
-      btnLogin.innerText = "Ingresar al SCADA";
+      btnLogin.innerText = "Ingresar a Empresa GG";
     }
 
     if (canalMonitoreo) supabaseClient.removeChannel(canalMonitoreo);
@@ -108,7 +109,7 @@ async function ejecutarLogin(e) {
     feedback.innerText = "Error: " + error.message;
     feedback.classList.remove("hidden");
     btn.disabled = false;
-    btn.innerText = "Ingresar al SCADA";
+    btn.innerText = "Ingresar Empresa GG";
   }
 }
 
