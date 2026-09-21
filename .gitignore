@@ -1,2 +1,18 @@
+# Dependencias
 node_modules/
+
+# Variables de entorno y secretos
 .env
+.env.*
+!.env.example
+
+# Llaves y certificados
+*.pem
+*.key
+
+# Carpetas de despliegue
+.vercel/
+
+# Logs y archivos del sistema
+*.log
+.DS_Store

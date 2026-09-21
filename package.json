@@ -1,8 +1,8 @@
 {
-  "name": "idad-landing",
+  "name": "actividad1-tecnologia-4.0",
   "version": "1.0.0",
-  "description": "**Sistema:** Monitoreo IoT / Telemetría Industrial  \r **Gestor:** Supabase (PostgreSQL 15+)  \r **Última actualización:** 17 de septiembre de 2026",
-  "main": "app.js",
+  "description": "Sistema de monitoreo IoT / telemetría industrial (Empresa GG) sobre Supabase",
+  "main": "src/simulador.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
