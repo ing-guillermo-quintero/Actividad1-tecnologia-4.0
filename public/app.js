@@ -158,14 +158,61 @@ async function cargarLecturas(filtro = "recientes") {
   }
 }
 
-function renderTabla(lecturas) {
+async function renderTabla(lecturas) {
   const tbody = document.getElementById("lecturasTableBody");
-  tbody.innerHTML = "";
+  tbody.replaceChildren();
 
   if (!lecturas || lecturas.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6" style="padding: 1.5rem; text-align: center; color: var(--text-muted);">No hay lecturas registradas.</td></tr>`;
+    const tr = document.createElement("tr");
+    const td = document.createElement("td");
+    td.colSpan = 6;
+    td.style.cssText = "padding:1.5rem;text-align:center;color:var(--text-muted)";
+    td.textContent = "No hay lecturas registradas.";
+    tr.appendChild(td);
+    tbody.appendChild(tr);
     return;
   }
+
+  const paths = lecturas.map(l => l.evidencia_path).filter(Boolean);
+  const urls = {};
+  if (paths.length) {
+    const { data } = await supabaseClient.storage.from("evidencias").createSignedUrls(paths, 300);
+    (data || []).forEach(d => { if (d.signedUrl) urls[d.path] = d.signedUrl; });
+  }
+
+  const celda = (texto, estilo = "") => {
+    const td = document.createElement("td");
+    td.style.cssText = "padding:0.6rem;" + estilo;
+    td.textContent = texto;
+    return td;
+  };
+
+  for (const l of lecturas) {
+    const estadoLower = String(l.estado).toLowerCase();
+    const esAlerta = estadoLower.includes("alerta") || estadoLower.includes("falla");
+    const temp = Number(l.temperatura);
+
+    const tr = document.createElement("tr");
+    tr.appendChild(celda(l.codigo_maquina));
+    tr.appendChild(celda(temp.toFixed(2)));
+    tr.appendChild(celda(Number(l.nivel_vibracion).toFixed(2)));
+    tr.appendChild(celda(l.estado));
+
+    const tdFoto = celda("");
+    const url = urls[l.evidencia_path];
+    if (url) {
+      const a = document.createElement("a");
+      a.href = url;
+      a.textContent = "Ver Foto";
+      a.target = "_blank";
+      tdFoto.appendChild(a);
+    } else {
+      tdFoto.textContent = "-";
+    }
+    tr.appendChild(tdFoto);
+    tbody.appendChild(tr);
+  }
+}
 
   lecturas.forEach((l) => {
     const fecha = new Date(l.fecha_registro).toLocaleString([], {
@@ -192,7 +239,7 @@ function renderTabla(lecturas) {
     `;
     tbody.appendChild(tr);
   });
-}
+
 
 function actualizarConsolaKPI(lecturasTotales) {
   if (!lecturasTotales || lecturasTotales.length === 0) return;
