@@ -154,7 +154,7 @@ async function cargarLecturas(filtro = "recientes") {
 
   renderTabla(data);
   if (data && data.length > 0) {
-    actualizarConsolaKPI(data[0]);
+    actualizarConsolaKPI(data);
   }
 }
 
