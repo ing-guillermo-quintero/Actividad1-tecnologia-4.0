@@ -4,7 +4,9 @@
 const SUPABASE_URL = "https://uduyarryvxxxuayeuwdq.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVkdXlhcnJ5dnh4eHVheWV1d2RxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkzNDUyODIsImV4cCI6MjEwNDkyMTI4Mn0.g-QHqAi4D0KLI8NPGBpD78MXAgMh34V-JVbUQ_jHTJQ";
 
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: { storage: window.sessionStorage } // Persistencia segura en sesión
+});
 
 let currentUser = null;
 let filtroActual = "recientes";
@@ -14,15 +16,12 @@ let canalMonitoreo = null;
 // 2. INICIALIZACIÓN DE AUTENTICACIÓN
 // ==========================================================================
 document.addEventListener("DOMContentLoaded", async () => {
-  // Listener del formulario manual
   const readingForm = document.getElementById("readingForm");
   if (readingForm) readingForm.addEventListener("submit", registrarLectura);
 
-  // Verificar sesión activa inicial
   const { data: { session } } = await supabaseClient.auth.getSession();
   actualizarUIAuth(session);
 
-  // Escuchar cambios de sesión (Login/Logout)
   supabaseClient.auth.onAuthStateChange((_event, session) => {
     actualizarUIAuth(session);
   });
@@ -31,7 +30,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 // ==========================================================================
 // 3. CONTROL DE PANELES (LOGIN / DASHBOARD)
 // ==========================================================================
-// Nueva función para navegar entre pestañas
 window.cambiarPestana = function(tabId, btnElement) {
   document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
@@ -44,7 +42,7 @@ function actualizarUIAuth(session) {
   const dashboardPanel = document.getElementById("dashboard-panel");
   const authSection = document.getElementById("authSection");
   const statusElem = document.getElementById("connectionStatus");
-  const btnLogin = document.getElementById("btnLogin"); // El botón que se quedaba pegado
+  const btnLogin = document.getElementById("btnLogin");
 
   if (!session) {
     currentUser = null;
@@ -54,7 +52,6 @@ function actualizarUIAuth(session) {
     statusElem.innerText = "● Esperando autenticación...";
     statusElem.style.color = "var(--text-muted)";
     
-    // SOLUCIÓN AL BUG: Restaurar el botón de login al cerrar sesión
     if (btnLogin) {
       btnLogin.disabled = false;
       btnLogin.innerText = "Ingresar al SCADA";
@@ -69,28 +66,30 @@ function actualizarUIAuth(session) {
     const userRole = currentUser.user_metadata?.rol || 
                      (currentUser.email.includes("supervisor") ? "supervisor" : "operador");
 
-    // LÓGICA DE PESTAÑAS Y PERFILES
     const tabRegistroBtn = document.getElementById("tab-registro-btn");
     if (userRole === "supervisor") {
-      tabRegistroBtn.style.display = "none"; // El supervisor ni siquiera ve el botón
+      tabRegistroBtn.style.display = "none";
     } else {
-      tabRegistroBtn.style.display = "block"; // El operador sí ve la pestaña
+      tabRegistroBtn.style.display = "block";
     }
     
-    // Forzar siempre ir a la pestaña "En Vivo" al entrar
     cambiarPestana('tab-vivo', document.querySelector('.tab-btn')); 
 
     authSection.innerHTML = `
       <div style="display: flex; align-items: center; gap: 1rem; font-size: 0.85rem; color: #fff;">
         <span><strong>${currentUser.email}</strong> [<span style="color: var(--color-orange); text-transform: uppercase;">${userRole}</span>]</span>
-        <button onclick="ejecutarLogout()" class="btn btn-secondary" style="padding: 0.3rem 0.75rem; font-size: 0.75rem;">Cerrar Sesión</button>
+        <button id="btnLogout" class="btn btn-secondary" style="padding: 0.3rem 0.75rem; font-size: 0.75rem;">Cerrar Sesión</button>
       </div>
     `;
+    
+    // Listener seguro para CSP
+    document.getElementById("btnLogout").addEventListener("click", ejecutarLogout);
 
     cargarLecturas(filtroActual);
     conectarRealtime();
   }
 }
+
 async function ejecutarLogin(e) {
   e.preventDefault();
   const btn = document.getElementById("btnLogin");
@@ -111,7 +110,6 @@ async function ejecutarLogin(e) {
     btn.disabled = false;
     btn.innerText = "Ingresar al SCADA";
   }
-  // Si es exitoso, el evento onAuthStateChange actualizará la UI automáticamente
 }
 
 async function ejecutarLogout() {
@@ -152,7 +150,7 @@ async function cargarLecturas(filtro = "recientes") {
     return;
   }
 
-  renderTabla(data);
+  await renderTabla(data);
   if (data && data.length > 0) {
     actualizarConsolaKPI(data);
   }
@@ -193,10 +191,11 @@ async function renderTabla(lecturas) {
     const temp = Number(l.temperatura);
 
     const tr = document.createElement("tr");
-    tr.appendChild(celda(l.codigo_maquina));
-    tr.appendChild(celda(temp.toFixed(2)));
+    tr.style.borderBottom = "1px solid rgba(255, 255, 255, 0.05)";
+    tr.appendChild(celda(l.codigo_maquina, "font-weight: 600; color: #fff;"));
+    tr.appendChild(celda(temp.toFixed(2), `color: ${temp > 80 ? '#ef4444' : 'inherit'}; font-weight: ${temp > 80 ? '700' : '400'};`));
     tr.appendChild(celda(Number(l.nivel_vibracion).toFixed(2)));
-    tr.appendChild(celda(l.estado));
+    tr.appendChild(celda(l.estado, `color: ${esAlerta ? '#ef4444' : '#10b981'}; font-weight: 600; text-transform: uppercase;`));
 
     const tdFoto = celda("");
     const url = urls[l.evidencia_path];
@@ -205,54 +204,32 @@ async function renderTabla(lecturas) {
       a.href = url;
       a.textContent = "Ver Foto";
       a.target = "_blank";
+      a.style.cssText = "color: var(--color-cyan); text-decoration: underline;";
       tdFoto.appendChild(a);
     } else {
       tdFoto.textContent = "-";
+      tdFoto.style.color = "var(--text-muted)";
     }
     tr.appendChild(tdFoto);
+    
+    const fechaFormateada = new Date(l.fecha_registro).toLocaleString([], {
+      month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit'
+    });
+    tr.appendChild(celda(fechaFormateada, "color: var(--text-muted); font-size: 0.75rem;"));
+    
     tbody.appendChild(tr);
   }
 }
 
-  lecturas.forEach((l) => {
-    const fecha = new Date(l.fecha_registro).toLocaleString([], {
-      month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit'
-    });
-
-    const isAlerta = l.estado.toLowerCase().includes("alerta") || l.estado.toLowerCase().includes("falla");
-    const colorEstado = isAlerta ? "#ef4444" : "#10b981";
-    const colorTemp = Number(l.temperatura) > 80 ? "#ef4444" : "inherit";
-
-    const linkFoto = l.evidencia_url 
-      ? `<a href="${l.evidencia_url}" target="_blank" style="color: var(--color-cyan); text-decoration: underline;">Ver Foto</a>`
-      : `<span style="color: var(--text-muted);">-</span>`;
-
-    const tr = document.createElement("tr");
-    tr.style.borderBottom = "1px solid rgba(255, 255, 255, 0.05)";
-    tr.innerHTML = `
-      <td style="padding: 0.6rem; font-weight: 600; color: #fff;">${l.codigo_maquina}</td>
-      <td style="padding: 0.6rem; color: ${colorTemp}; font-weight: ${Number(l.temperatura) > 80 ? '700' : '400'};">${Number(l.temperatura).toFixed(2)}</td>
-      <td style="padding: 0.6rem;">${Number(l.nivel_vibracion).toFixed(2)}</td>
-      <td style="padding: 0.6rem; color: ${colorEstado}; font-weight: 600; text-transform: uppercase;">${l.estado}</td>
-      <td style="padding: 0.6rem;">${linkFoto}</td>
-      <td style="padding: 0.6rem; color: var(--text-muted); font-size: 0.75rem;">${fecha}</td>
-    `;
-    tbody.appendChild(tr);
-  });
-
-
 function actualizarConsolaKPI(lecturasTotales) {
   if (!lecturasTotales || lecturasTotales.length === 0) return;
 
-  // Diccionario para almacenar la lectura más reciente de cada motor
   const ultimasLecturas = {
     'MOT-A1': null,
     'MOT-B2': null,
     'MOT-C3': null
   };
 
-  // Como los datos vienen ordenados del más reciente al más antiguo,
-  // el primero que encontremos de cada motor es su estado actual.
   for (let l of lecturasTotales) {
     if (ultimasLecturas[l.codigo_maquina] === null) {
       ultimasLecturas[l.codigo_maquina] = l;
@@ -262,7 +239,6 @@ function actualizarConsolaKPI(lecturasTotales) {
   let hayAlertaGlobal = false;
   let mensajeAlerta = "";
 
-  // Actualizar las tarjetas individuales en la UI
   Object.keys(ultimasLecturas).forEach(maquina => {
     const data = ultimasLecturas[maquina];
     if (data) {
@@ -272,7 +248,6 @@ function actualizarConsolaKPI(lecturasTotales) {
       const estadoElem = document.getElementById(`estado-${maquina}`);
       estadoElem.innerText = data.estado.toUpperCase();
 
-      // Colorear estados críticos
       const tempVal = Number(data.temperatura);
       const esCritico = tempVal > 80 || data.estado.toLowerCase().includes("alerta") || data.estado.toLowerCase().includes("falla");
       
@@ -288,7 +263,6 @@ function actualizarConsolaKPI(lecturasTotales) {
     }
   });
 
-  // Manejar el Banner de Alerta Superior
   const alertBanner = document.getElementById("alertBanner");
   const alertText = document.getElementById("alertText");
 
@@ -313,23 +287,22 @@ async function registrarLectura(e) {
 
   try {
     let evidenciaUrl = null;
+    let evidenciaPath = null;
     const fileInput = document.getElementById("evidenciaFile");
 
     if (fileInput.files.length > 0) {
       const file = fileInput.files[0];
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}_${document.getElementById("codigo_maquina").value}.${fileExt}`;
+      
+      // Ajuste de seguridad: subir en carpeta del usuario
+      evidenciaPath = `${currentUser.id}/${fileName}`;
 
       const { data: uploadData, error: uploadErr } = await supabaseClient.storage
         .from("evidencias")
-        .upload(fileName, file);
+        .upload(evidenciaPath, file);
 
-      if (!uploadErr && uploadData) {
-        const { data: publicUrlData } = supabaseClient.storage
-          .from("evidencias")
-          .getPublicUrl(fileName);
-        evidenciaUrl = publicUrlData.publicUrl;
-      }
+      if (uploadErr) throw uploadErr;
     }
 
     const payload = {
@@ -339,7 +312,7 @@ async function registrarLectura(e) {
       estado: document.getElementById("estado").value
     };
 
-    if (evidenciaUrl) payload.evidencia_url = evidenciaUrl;
+    if (evidenciaPath) payload.evidencia_path = evidenciaPath;
 
     const { error: insertError } = await supabaseClient.from("lecturas_maquina").insert([payload]);
     if (insertError) throw insertError;
