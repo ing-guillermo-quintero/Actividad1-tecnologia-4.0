@@ -15,13 +15,15 @@ const iniciarSimulacion = async () => {
     let estado = 'Operativo';
     let evidencia_url = null;
 
-    if (temperatura >= 85 || nivel_vibracion >= 11.2) {
-        estado = 'Falla';
-        evidencia_url = 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Warning.svg/512px-Warning.svg.png';
-    } else if (temperatura >= 80 || nivel_vibracion >= 7.1) {
-        estado = 'Alerta';
-        evidencia_url = 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Warning.svg/512px-Warning.svg.png';
-    }
+if (temperatura >= 85 || nivel_vibracion >= 11.2) {
+    estado = 'Falla';
+    // Placa roja de error crítico
+    evidencia_url = 'https://placehold.co/600x400/EF4444/FFFFFF?text=ALERTA+CRITICA:+FALLA+DE+MOTOR';
+} else if (temperatura >= 80 || nivel_vibracion >= 7.1) {
+    estado = 'Alerta';
+    // Placa naranja de advertencia
+    evidencia_url = 'https://placehold.co/600x400/F59E0B/FFFFFF?text=ADVERTENCIA:+PARAMETROS+ELEVADOS';
+}
 
     const payload = {
         codigo_maquina: codigoSeleccionado,
