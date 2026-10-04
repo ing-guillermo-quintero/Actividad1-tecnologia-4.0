@@ -3,18 +3,22 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Empresa GG | Supervisión de Maquinaria 4.0</title>
+  <title>Empresa GG | Supervisión Planta 4.0</title>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
   
   <link rel="stylesheet" href="styles.css" />
-  <!-- SDK de Supabase con versión fija y Subresource Integrity (SRI) -->
+  
+  <!-- SDK de Supabase con versión exacta e integridad SRI auditada -->
   <script
   src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.js"
   integrity="sha384-iLddHTLokph6Omwoyid4XKxHaWa6w41BnoEj0q5oOrzmYPpHIKt1wyjReA7s//pP"
   crossorigin="anonymous"></script>
+
+  <!-- Librería Chart.js para analítica de series temporales (Permitida por CSP) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 </head>
 <body>
   <!-- Barra de Navegación -->
@@ -23,7 +27,7 @@
       <div class="brand">
         <img src="GG_logo.png" alt="Empresa GG Logo" style="height: 45px; border-radius: 6px; margin-right: 10px;">
         <div class="brand-text">
-          <span class="brand-title">EMPRESA GG - SUPERVISIÓN 4.0</span>
+          <span class="brand-title">EMPRESA GG - PLANTA 4.0</span>
           <span class="brand-subtitle" id="connectionStatus">● Esperando autenticación...</span>
         </div>
       </div>
@@ -39,11 +43,11 @@
           <img src="GG_logo.png" alt="Empresa GG Logo" style="height: 60px; border-radius: 8px;">
           <div style="text-align: left; display: flex; flex-direction: column;">
             <span style="font-size: 1.4rem; font-weight: 800; color: #fff; letter-spacing: 1px; line-height: 1.1;">EMPRESA GG</span>
-            <span style="font-size: 0.75rem; color: var(--text-muted); letter-spacing: 0.5px;">SUPERVISIÓN 4.0</span>
+            <span style="font-size: 0.75rem; color: var(--text-muted); letter-spacing: 0.5px;">PLANTA INDUSTRIAL 4.0</span>
           </div>
         </div>
         <h2>Acceso Restringido</h2>
-        <p>Inicie sesión para acceder a la telemetría en tiempo real</p>
+        <p>Inicie sesión para acceder al sistema SCADA</p>
       </div>
       <form id="mainLoginForm" class="contact-form">
         <div class="form-group">
@@ -63,11 +67,12 @@
   <!-- PANEL 2: DASHBOARD CON PESTAÑAS -->
   <main id="dashboard-panel" class="container hidden" style="padding-top: 2rem; padding-bottom: 4rem;">
     
-    <!-- Menú de Pestañas -->
+    <!-- Menú de Pestañas Dinámicas según Rol -->
     <div class="tabs-nav">
       <button class="tab-btn active" data-tab="tab-vivo">Monitoreo en Vivo</button>
-      <button class="tab-btn" data-tab="tab-historial">Historial de Telemetría</button>
-      <button class="tab-btn" id="tab-registro-btn" data-tab="tab-registro">Registrar Novedad</button>
+      <button class="tab-btn" data-tab="tab-historial">Historial y Filtros</button>
+      <button class="tab-btn" id="tab-supervisor-btn" data-tab="tab-supervisor" style="display: none;">Panel Supervisor & Costos</button>
+      <button class="tab-btn" id="tab-registro-btn" data-tab="tab-registro" style="display: none;">Registrar Novedad</button>
     </div>
 
     <!-- PESTAÑA 1: MONITOREO EN VIVO -->
@@ -76,93 +81,308 @@
         <strong>⚠️ ALERTA INDUSTRIAL DETECTADA:</strong> <span id="alertText">Monitoreo dentro de parámetros.</span>
       </div>
 
-      <section class="telemetry-card">
+      <!-- Resumen General de Planta -->
+      <section class="telemetry-card" style="margin-bottom: 2rem;">
         <div class="telemetry-header">
           <div class="telemetry-dots"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>
-          <span class="telemetry-id">TELEMETRÍA EN VIVO | ESTADO DE MOTORES</span>
+          <span class="telemetry-id">RESUMEN GLOBAL DE PLANTA</span>
         </div>
         <div class="telemetry-body">
-          <div class="status-indicator online"><span class="pulse"></span> SISTEMA DE MONITOREO ACTIVO</div>
+          <div class="status-indicator online"><span class="pulse"></span> SISTEMA DE ADQUISICIÓN EN LÍNEA</div>
+          <div class="hero-stats" style="border: none; padding-top: 0;">
+            <div class="stat-item">
+              <span class="stat-number text-cyan" id="kpi-total-piezas">0</span>
+              <span class="stat-label">Total Piezas Producidas</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-number" id="kpi-consumo-total">0.00 kWh</span>
+              <span class="stat-label">Consumo Energético Acumulado</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-number text-green" id="kpi-maquinas-activas">0 / 0</span>
+              <span class="stat-label">Máquinas con Telemetría</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Cuadrícula Dinámica de Máquinas -->
+      <section class="telemetry-card">
+        <div class="telemetry-header">
+          <span class="telemetry-id">ESTADO DE MAQUINARIA EN TIEMPO REAL</span>
+        </div>
+        <div class="telemetry-body">
           <div class="metrics-grid" id="motores-grid">
-            <div class="metric-box">
-              <span class="metric-label" style="font-weight: bold; color: var(--color-cyan);">MOT-A1 (PRINCIPAL)</span>
-              <span class="metric-val" id="temp-MOT-A1">-- °C</span>
-              <span class="metric-sub" id="vib-MOT-A1">Vibración: -- mm/s</span>
-              <span class="metric-sub" id="estado-MOT-A1" style="margin-top: 0.5rem; font-weight: bold;">--</span>
-            </div>
-            <div class="metric-box">
-              <span class="metric-label" style="font-weight: bold; color: var(--color-cyan);">MOT-B2 (BOMBA)</span>
-              <span class="metric-val" id="temp-MOT-B2">-- °C</span>
-              <span class="metric-sub" id="vib-MOT-B2">Vibración: -- mm/s</span>
-              <span class="metric-sub" id="estado-MOT-B2" style="margin-top: 0.5rem; font-weight: bold;">--</span>
-            </div>
-            <div class="metric-box">
-              <span class="metric-label" style="font-weight: bold; color: var(--color-cyan);">MOT-C3 (COMPRESOR)</span>
-              <span class="metric-val" id="temp-MOT-C3">-- °C</span>
-              <span class="metric-sub" id="vib-MOT-C3">Vibración: -- mm/s</span>
-              <span class="metric-sub" id="estado-MOT-C3" style="margin-top: 0.5rem; font-weight: bold;">--</span>
+            <div style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 2rem;">
+              Esperando ingesta de datos de las máquinas...
             </div>
           </div>
         </div>
       </section>
     </div>
 
-    <!-- PESTAÑA 2: HISTORIAL DE TELEMETRÍA -->
+    <!-- PESTAÑA 2: HISTORIAL Y FILTROS AVANZADOS -->
     <div id="tab-historial" class="tab-content">
       <section class="service-card" style="overflow-x: auto; width: 100%;">
-        <h3 style="margin-bottom: 0.5rem;">Base de Datos Histórica</h3>
+        <h3 style="margin-bottom: 1rem;">Historial de Planta y Análisis de Telemetría</h3>
         
-        <!-- Controles de Filtrado: Selector de Máquina y Condiciones -->
-        <div style="display: flex; gap: 0.75rem; margin-bottom: 1.25rem; flex-wrap: wrap; align-items: center;">
+        <!-- Barra 1: Filtro de Máquina y Ordenamiento -->
+        <div style="display: flex; gap: 1rem; margin-bottom: 1.25rem; flex-wrap: wrap; align-items: center; background: rgba(255,255,255,0.02); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color);">
           <div style="display: flex; align-items: center; gap: 0.5rem;">
             <label for="filtroMaquina" style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Máquina:</label>
-            <select id="filtroMaquina" class="btn btn-secondary" style="padding: 0.4rem 0.75rem; font-size: 0.8rem; background-color: var(--bg-surface-elevated); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 6px; cursor: pointer;">
-              <option value="todas">Todos los motores</option>
-              <option value="MOT-A1">MOT-A1 (Principal)</option>
-              <option value="MOT-B2">MOT-B2 (Bomba)</option>
-              <option value="MOT-C3">MOT-C3 (Compresor)</option>
-              <option value="MOT-SIM-01">MOT-SIM-01 (Simulador)</option>
+            <select id="filtroMaquina" class="select-industrial">
+              <option value="todas">Todas las máquinas</option>
             </select>
           </div>
-          
-          <button class="btn btn-secondary" style="padding: 0.4rem 0.75rem; font-size: 0.8rem;" data-filtro="todas">Todas las lecturas</button>
-          <button class="btn btn-secondary" style="padding: 0.4rem 0.75rem; font-size: 0.8rem;" data-filtro="temp80">Temperatura &gt; 80°C</button>
-          <button class="btn btn-secondary" style="padding: 0.4rem 0.75rem; font-size: 0.8rem;" data-filtro="alerta">Estado 'Alerta'</button>
-          <button class="btn btn-secondary" style="padding: 0.4rem 0.75rem; font-size: 0.8rem;" data-filtro="recientes">Cronológico</button>
+
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <label for="ordenColumna" style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Ordenar por:</label>
+            <select id="ordenColumna" class="select-industrial">
+              <option value="fecha_registro">Fecha y Hora</option>
+              <option value="piezas_producidas">Piezas Producidas</option>
+              <option value="tiempo_operacion_min">Tiempo Operación</option>
+              <option value="tiempo_parada_min">Tiempo Parada</option>
+              <option value="temperatura">Temperatura</option>
+              <option value="nivel_vibracion">Vibración</option>
+              <option value="consumo_energia_kwh">Consumo Energía</option>
+            </select>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <label for="ordenDireccion" style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Sentido:</label>
+            <select id="ordenDireccion" class="select-industrial">
+              <option value="DESC">Descendente (Mayor a Menor)</option>
+              <option value="ASC">Ascendente (Menor a Mayor)</option>
+            </select>
+          </div>
+
+          <button id="btnAplicarOrden" class="btn btn-secondary" style="padding: 0.4rem 0.9rem; font-size: 0.8rem;">Aplicar Orden</button>
         </div>
 
-        <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem; font-family: var(--font-mono);">
+        <!-- Barra 2: Constructor de Filtros Numéricos Acumulables -->
+        <div style="display: flex; gap: 0.75rem; margin-bottom: 1rem; flex-wrap: wrap; align-items: center; background: rgba(255,255,255,0.02); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color);">
+          <span style="font-size: 0.8rem; color: var(--color-orange); font-weight: 700;">FILTRO NUMÉRICO:</span>
+          
+          <select id="filtroCampo" class="select-industrial">
+            <option value="piezas_producidas">Piezas Producidas</option>
+            <option value="tiempo_operacion_min">Tiempo Operación (min)</option>
+            <option value="tiempo_parada_min">Tiempo Parada (min)</option>
+            <option value="temperatura">Temperatura (°C)</option>
+            <option value="nivel_vibracion">Vibración (mm/s)</option>
+            <option value="consumo_energia_kwh">Consumo Energía (kWh)</option>
+          </select>
+
+          <select id="filtroOperador" class="select-industrial" style="width: auto;">
+            <option value=">">Mayor que (&gt;)</option>
+            <option value="<">Menor que (&lt;)</option>
+            <option value=">=">Mayor o igual (&gt;=)</option>
+            <option value="<=">Menor o igual (&lt;=)</option>
+          </select>
+
+          <input type="number" id="filtroValor" placeholder="Valor" step="0.01" style="width: 110px; padding: 0.4rem; font-size: 0.8rem; background: var(--bg-surface); border: 1px solid var(--border-color); color: #fff; border-radius: 6px;" />
+
+          <button id="btnAgregarFiltro" class="btn btn-primary" style="padding: 0.4rem 0.85rem; font-size: 0.8rem;">+ Agregar Filtro</button>
+          <button id="btnLimpiarFiltros" class="btn btn-secondary" style="padding: 0.4rem 0.85rem; font-size: 0.8rem;">Quitar Todos</button>
+        </div>
+
+        <div id="chipsFiltrosContainer" style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.25rem;"></div>
+
+        <!-- Tabla de Telemetría -->
+        <table style="width: 100%; border-collapse: collapse; font-size: 0.8rem; font-family: var(--font-mono);">
           <thead>
             <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); text-align: left; color: var(--text-muted);">
               <th style="padding: 0.6rem;">Máquina</th>
+              <th style="padding: 0.6rem;">Piezas</th>
+              <th style="padding: 0.6rem;">T. Op (min)</th>
+              <th style="padding: 0.6rem;">T. Parada (min)</th>
               <th style="padding: 0.6rem;">Temp (°C)</th>
-              <th style="padding: 0.6rem;">Vibración</th>
-              <th style="padding: 0.6rem;">Estado</th>
+              <th style="padding: 0.6rem;">Vib (mm/s)</th>
+              <th style="padding: 0.6rem;">Consumo (kWh)</th>
+              <th style="padding: 0.6rem;">Estado / Alarma</th>
               <th style="padding: 0.6rem;">Foto</th>
               <th style="padding: 0.6rem;">Fecha y Hora</th>
             </tr>
           </thead>
           <tbody id="lecturasTableBody">
-            <tr><td colspan="6" style="padding: 1.5rem; text-align: center;">Esperando datos...</td></tr>
+            <tr><td colspan="10" style="padding: 1.5rem; text-align: center;">Esperando datos...</td></tr>
           </tbody>
         </table>
       </section>
     </div>
 
-    <!-- PESTAÑA 3: REGISTRO MANUAL (Solo Operador) -->
-    <div id="tab-registro" class="tab-content">
-      <section class="service-card highlight" style="max-width: 600px; margin: 0 auto;">
-        <span class="service-tag">INGRESO DE DATOS MANUAL</span>
-        <h3 style="margin-bottom: 0.5rem;">Registrar Lectura</h3>
-        <form id="readingForm" class="contact-form">
-          <div class="form-group">
-            <label for="codigo_maquina">Código de Máquina *</label>
-            <select id="codigo_maquina" required>
-              <option value="MOT-A1">MOT-A1 (Motor Principal Línea 1)</option>
-              <option value="MOT-B2">MOT-B2 (Bomba Centrífuga)</option>
-              <option value="MOT-C3">MOT-C3 (Compresor de Aire)</option>
-            </select>
+    <!-- PESTAÑA 3: PANEL EXCLUSIVO DEL SUPERVISOR -->
+    <div id="tab-supervisor" class="tab-content">
+      
+      <!-- Banner de Incidentes Complejos -->
+      <div id="bannerAlertasComplejas" class="telemetry-code hidden" style="border: 1px solid #ef4444; background: rgba(239, 68, 68, 0.12); margin-bottom: 2rem; padding: 1.25rem; border-radius: 8px;">
+        <strong style="color: #ef4444; font-size: 0.9rem;">⚠️ ANOMALÍAS DETECTADAS POR EL MOTOR ANALÍTICO:</strong>
+        <ul id="listaAlertasComplejas" style="list-style: none; margin-top: 0.75rem; font-family: var(--font-sans); font-size: 0.85rem; color: #fca5a5; display: flex; flex-direction: column; gap: 0.4rem;"></ul>
+      </div>
+
+      <!-- Tarjetas de Balance Operativo y Costos -->
+      <section class="telemetry-card" style="margin-bottom: 2rem;">
+        <div class="telemetry-header">
+          <span class="telemetry-id">BALANCE OPERATIVO Y COSTOS ESTIMADOS DE PRODUCCIÓN (ÚLTIMAS 24 HORAS)</span>
+        </div>
+        <div class="telemetry-body">
+          <div class="hero-stats" style="grid-template-columns: repeat(4, 1fr); border: none; padding-top: 0;">
+            <div class="stat-item">
+              <span class="stat-number text-cyan" id="kpi-sup-piezas">0</span>
+              <span class="stat-label">Piezas Producidas</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-number" id="kpi-sup-costo-energia">$0.00</span>
+              <span class="stat-label">Costo Eléctrico Estimado</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-number" style="color: #ef4444;" id="kpi-sup-costo-parada">$0.00</span>
+              <span class="stat-label">Lucro Cesante (Paradas)</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-number text-green" id="kpi-sup-maquinas">0 / 0</span>
+              <span class="stat-label">Equipos en Operación</span>
+            </div>
           </div>
+        </div>
+      </section>
+
+      <!-- GRÁFICO DINÁMICO DE TENDENCIAS Y VARIABLES DE BALANCE -->
+      <section class="telemetry-card" style="margin-bottom: 2rem;">
+        <div class="telemetry-header">
+          <span class="telemetry-id">EVOLUCIÓN TEMPORAL DE INDICADORES Y COSTOS</span>
+        </div>
+        <div class="telemetry-body">
+          <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; align-items: center; background: rgba(255,255,255,0.02); padding: 0.85rem 1.25rem; border-radius: 8px; border: 1px solid var(--border-color);">
+            
+            <!-- Selector de Variable -->
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <label for="selectGraficoVariable" style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Variable:</label>
+              <select id="selectGraficoVariable" class="select-industrial">
+                <option value="piezas_producidas">Piezas Producidas</option>
+                <option value="costo_energia">Costo Eléctrico Estimado ($)</option>
+                <option value="costo_parada">Lucro Cesante / Paradas ($)</option>
+                <option value="consumo_energia_kwh">Consumo Energía (kWh)</option>
+                <option value="tiempo_parada_min">Tiempo Parada (min)</option>
+                <option value="tiempo_operacion_min">Tiempo Operación (min)</option>
+                <option value="temperatura_prom">Temperatura Promedio (°C)</option>
+                <option value="vibracion_prom">Vibración Promedio (mm/s)</option>
+              </select>
+            </div>
+
+            <!-- Selector de Máquina para el Gráfico -->
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <label for="selectGraficoMaquina" style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Máquina:</label>
+              <select id="selectGraficoMaquina" class="select-industrial">
+                <option value="todas">Todas las máquinas</option>
+              </select>
+            </div>
+
+            <!-- Selector de Escala de Tiempo -->
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <label for="selectGraficoEscala" style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Escala:</label>
+              <select id="selectGraficoEscala" class="select-industrial">
+                <option value="horas">Horas (Día Específico)</option>
+                <option value="dias">Diaria (Últimos 30 Días)</option>
+                <option value="meses">Mensual (Últimos 12 Meses)</option>
+              </select>
+            </div>
+
+            <!-- Selector de Fecha Específica (Activo por defecto para escala 'horas') -->
+            <div id="contenedorFechaGrafico" style="display: flex; align-items: center; gap: 0.5rem;">
+              <label for="inputGraficoFecha" style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Día:</label>
+              <input type="date" id="inputGraficoFecha" class="select-industrial" style="padding: 0.35rem 0.6rem;" />
+            </div>
+          </div>
+
+          <!-- Contenedor Responsive del Canvas -->
+          <div style="position: relative; height: 360px; width: 100%;">
+            <canvas id="canvasGraficoSupervisor"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <!-- Repositorio de Documentos Técnicos -->
+      <section class="service-card" style="margin-bottom: 2rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+          <h3>Repositorio de Informes Técnicos y Auditorías</h3>
+          <span class="badge" style="margin-bottom: 0;">BUCKET PRIVADO: INFORMES</span>
+        </div>
+        
+        <form id="formInformeTecnico" class="contact-form" style="margin-bottom: 2rem; background: rgba(255,255,255,0.02); padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border-color);">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="informeTitulo">Título del Documento *</label>
+              <input type="text" id="informeTitulo" placeholder="ej. Informe de Cierre de Turno o Mantenimiento" required />
+            </div>
+            <div class="form-group">
+              <label for="informeTipo">Tipo de Documento *</label>
+              <select id="informeTipo" class="select-industrial" required>
+                <option value="Turno">Informe de Turno</option>
+                <option value="Mantenimiento">Orden de Mantenimiento</option>
+                <option value="Auditoría">Auditoría Técnica</option>
+                <option value="Falla Crítica">Reporte de Falla Crítica</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="informeResumen">Resumen Ejecutivo</label>
+              <input type="text" id="informeResumen" placeholder="Descripción resumida del hallazgo, parada o balance" />
+            </div>
+            <div class="form-group">
+              <label for="informeArchivo">Archivo Adjunto (.pdf, .xlsx, .docx - Máx 10 MB) *</label>
+              <input type="file" id="informeArchivo" accept=".pdf,.xlsx,.docx" required />
+            </div>
+          </div>
+          <div id="statusInforme" class="form-feedback hidden"></div>
+          <button type="submit" id="btnSubirInforme" class="btn btn-primary" style="align-self: flex-start; padding: 0.5rem 1.25rem;">Radicar Documento Técnico</button>
+        </form>
+
+        <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem; font-family: var(--font-mono);">
+          <thead>
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); text-align: left; color: var(--text-muted);">
+              <th style="padding: 0.6rem;">Título</th>
+              <th style="padding: 0.6rem;">Tipo</th>
+              <th style="padding: 0.6rem;">Resumen</th>
+              <th style="padding: 0.6rem;">Fecha</th>
+              <th style="padding: 0.6rem;">Descarga</th>
+            </tr>
+          </thead>
+          <tbody id="tablaInformesBody">
+            <tr><td colspan="5" style="padding: 1.5rem; text-align: center; color: var(--text-muted);">Cargando repositorio documental...</td></tr>
+          </tbody>
+        </table>
+      </section>
+    </div>
+
+    <!-- PESTAÑA 4: REGISTRO MANUAL DE PLANTA (Solo Operador) -->
+    <div id="tab-registro" class="tab-content">
+      <section class="service-card highlight" style="max-width: 650px; margin: 0 auto;">
+        <span class="service-tag">INGRESO DE DATOS MANUAL</span>
+        <h3 style="margin-bottom: 0.5rem;">Registrar Lectura de Planta</h3>
+        <form id="readingForm" class="contact-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="codigo_maquina">Código de Máquina *</label>
+              <input type="text" id="codigo_maquina" placeholder="ej. MAQ-01" pattern="^MAQ-([0-9]{2,3})$" title="Formato válido desde MAQ-01 hasta MAQ-999" required />
+            </div>
+            <div class="form-group">
+              <label for="piezas_producidas">Piezas Producidas *</label>
+              <input type="number" id="piezas_producidas" min="0" step="1" required />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="tiempo_operacion_min">Tiempo Operación (min) *</label>
+              <input type="number" id="tiempo_operacion_min" min="0" step="0.1" required />
+            </div>
+            <div class="form-group">
+              <label for="tiempo_parada_min">Tiempo Parada (min) *</label>
+              <input type="number" id="tiempo_parada_min" min="0" step="0.1" required />
+            </div>
+          </div>
+
           <div class="form-row">
             <div class="form-group">
               <label for="temperatura">Temperatura (°C) *</label>
@@ -173,20 +393,35 @@
               <input type="number" step="0.01" id="nivel_vibracion" required />
             </div>
           </div>
-          <div class="form-group">
-            <label for="estado">Estado Operativo *</label>
-            <select id="estado" required>
-              <option value="Operativo">Operativo (Normal)</option>
-              <option value="Alerta">Alerta (Sobrecalentamiento / Vibración)</option>
-              <option value="Falla">Falla (Paro por avería)</option>
-            </select>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="consumo_energia_kwh">Consumo Energía (kWh) *</label>
+              <input type="number" step="0.01" min="0" id="consumo_energia_kwh" required />
+            </div>
+            <div class="form-group">
+              <label for="estado">Estado Operativo *</label>
+              <select id="estado" required>
+                <option value="Operativo">Operativo (Normal)</option>
+                <option value="Alerta">Alerta (Parámetros al límite)</option>
+                <option value="Falla">Falla (Paro por avería)</option>
+                <option value="Mantenimiento">Mantenimiento</option>
+              </select>
+            </div>
           </div>
+
+          <div class="form-group">
+            <label for="alarma">Alarma de Funcionamiento</label>
+            <input type="text" id="alarma" placeholder="ej. Parada de emergencia, Ninguna" value="Ninguna" required />
+          </div>
+
           <div class="form-group">
             <label for="evidenciaFile">Evidencia Fotográfica</label>
             <input type="file" id="evidenciaFile" accept="image/*" />
           </div>
+
           <div id="formStatus" class="form-feedback hidden"></div>
-          <button type="submit" id="btnSubmitReading" class="btn btn-primary btn-block">Radicar Lectura</button>
+          <button type="submit" id="btnSubmitReading" class="btn btn-primary btn-block">Radicar Telemetría</button>
         </form>
       </section>
     </div>
