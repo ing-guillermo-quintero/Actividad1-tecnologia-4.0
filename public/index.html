@@ -10,7 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
   
   <link rel="stylesheet" href="styles.css" />
-  <!-- SDK de Supabase (Mantenido según la versión auditada si existe, o la genérica) -->
+  <!-- SDK de Supabase con versión fija y Subresource Integrity (SRI) -->
   <script
   src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.js"
   integrity="sha384-iLddHTLokph6Omwoyid4XKxHaWa6w41BnoEj0q5oOrzmYPpHIKt1wyjReA7s//pP"
@@ -35,8 +35,6 @@
   <main id="login-panel" class="container" style="padding-top: 5rem; padding-bottom: 5rem;">
     <div class="contact-box" style="max-width: 500px; margin: 0 auto;">
       <div class="contact-header">
-        
-        <!-- LOGO Y NOMBRE DE EMPRESA GG CENTRADOS -->
         <div style="display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 1.5rem;">
           <img src="GG_logo.png" alt="Empresa GG Logo" style="height: 60px; border-radius: 8px;">
           <div style="text-align: left; display: flex; flex-direction: column;">
@@ -44,12 +42,9 @@
             <span style="font-size: 0.75rem; color: var(--text-muted); letter-spacing: 0.5px;">SUPERVISIÓN 4.0</span>
           </div>
         </div>
-        <!-- FIN LOGO -->
-
         <h2>Acceso Restringido</h2>
         <p>Inicie sesión para acceder a la telemetría en tiempo real</p>
       </div>
-      <!-- Eliminado el onsubmit (SEC-14) -->
       <form id="mainLoginForm" class="contact-form">
         <div class="form-group">
           <label for="loginEmail">Correo Institucional</label>
@@ -68,7 +63,7 @@
   <!-- PANEL 2: DASHBOARD CON PESTAÑAS -->
   <main id="dashboard-panel" class="container hidden" style="padding-top: 2rem; padding-bottom: 4rem;">
     
-    <!-- Menú de Pestañas (Eliminados los onclick, cambiados a data-tab) (SEC-14) -->
+    <!-- Menú de Pestañas -->
     <div class="tabs-nav">
       <button class="tab-btn active" data-tab="tab-vivo">Monitoreo en Vivo</button>
       <button class="tab-btn" data-tab="tab-historial">Historial de Telemetría</button>
@@ -116,13 +111,26 @@
     <div id="tab-historial" class="tab-content">
       <section class="service-card" style="overflow-x: auto; width: 100%;">
         <h3 style="margin-bottom: 0.5rem;">Base de Datos Histórica</h3>
-        <!-- Eliminados los onclick, cambiados a data-filtro (SEC-14) -->
-        <div style="display: flex; gap: 0.5rem; margin-bottom: 1.25rem; flex-wrap: wrap;">
+        
+        <!-- Controles de Filtrado: Selector de Máquina y Condiciones -->
+        <div style="display: flex; gap: 0.75rem; margin-bottom: 1.25rem; flex-wrap: wrap; align-items: center;">
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <label for="filtroMaquina" style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Máquina:</label>
+            <select id="filtroMaquina" class="btn btn-secondary" style="padding: 0.4rem 0.75rem; font-size: 0.8rem; background-color: var(--bg-surface-elevated); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 6px; cursor: pointer;">
+              <option value="todas">Todos los motores</option>
+              <option value="MOT-A1">MOT-A1 (Principal)</option>
+              <option value="MOT-B2">MOT-B2 (Bomba)</option>
+              <option value="MOT-C3">MOT-C3 (Compresor)</option>
+              <option value="MOT-SIM-01">MOT-SIM-01 (Simulador)</option>
+            </select>
+          </div>
+          
           <button class="btn btn-secondary" style="padding: 0.4rem 0.75rem; font-size: 0.8rem;" data-filtro="todas">Todas las lecturas</button>
           <button class="btn btn-secondary" style="padding: 0.4rem 0.75rem; font-size: 0.8rem;" data-filtro="temp80">Temperatura &gt; 80°C</button>
           <button class="btn btn-secondary" style="padding: 0.4rem 0.75rem; font-size: 0.8rem;" data-filtro="alerta">Estado 'Alerta'</button>
           <button class="btn btn-secondary" style="padding: 0.4rem 0.75rem; font-size: 0.8rem;" data-filtro="recientes">Cronológico</button>
         </div>
+
         <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem; font-family: var(--font-mono);">
           <thead>
             <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); text-align: left; color: var(--text-muted);">
@@ -146,10 +154,9 @@
       <section class="service-card highlight" style="max-width: 600px; margin: 0 auto;">
         <span class="service-tag">INGRESO DE DATOS MANUAL</span>
         <h3 style="margin-bottom: 0.5rem;">Registrar Lectura</h3>
-        <!-- El form tampoco lleva onsubmit -->
         <form id="readingForm" class="contact-form">
           <div class="form-group">
-            <label>Código de Máquina *</label>
+            <label for="codigo_maquina">Código de Máquina *</label>
             <select id="codigo_maquina" required>
               <option value="MOT-A1">MOT-A1 (Motor Principal Línea 1)</option>
               <option value="MOT-B2">MOT-B2 (Bomba Centrífuga)</option>
@@ -158,16 +165,16 @@
           </div>
           <div class="form-row">
             <div class="form-group">
-              <label>Temperatura (°C) *</label>
+              <label for="temperatura">Temperatura (°C) *</label>
               <input type="number" step="0.01" id="temperatura" required />
             </div>
             <div class="form-group">
-              <label>Vibración (mm/s) *</label>
+              <label for="nivel_vibracion">Vibración (mm/s) *</label>
               <input type="number" step="0.01" id="nivel_vibracion" required />
             </div>
           </div>
           <div class="form-group">
-            <label>Estado Operativo *</label>
+            <label for="estado">Estado Operativo *</label>
             <select id="estado" required>
               <option value="Operativo">Operativo (Normal)</option>
               <option value="Alerta">Alerta (Sobrecalentamiento / Vibración)</option>
@@ -175,7 +182,7 @@
             </select>
           </div>
           <div class="form-group">
-            <label>Evidencia Fotográfica</label>
+            <label for="evidenciaFile">Evidencia Fotográfica</label>
             <input type="file" id="evidenciaFile" accept="image/*" />
           </div>
           <div id="formStatus" class="form-feedback hidden"></div>
