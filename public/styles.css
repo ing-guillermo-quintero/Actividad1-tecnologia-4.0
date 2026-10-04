@@ -780,3 +780,19 @@ h1, h2, h3, h4 {
 .tab-btn.active { color: var(--color-orange); border-bottom: 2px solid var(--color-orange); }
 .tab-content { display: none; }
 .tab-content.active { display: block; }
+
+.select-industrial {
+  padding: 0.4rem 0.75rem;
+  font-size: 0.8rem;
+  background-color: var(--bg-surface-elevated);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  cursor: pointer;
+  outline: none;
+  font-family: inherit;
+}
+
+.select-industrial:focus {
+  border-color: var(--color-orange);
+}
