@@ -4,13 +4,14 @@
 const SUPABASE_URL = "https://uduyarryvxxxuayeuwdq.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVkdXlhcnJ5dnh4eHVheWV1d2RxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkzNDUyODIsImV4cCI6MjEwNDkyMTI4Mn0.g-QHqAi4D0KLI8NPGBpD78MXAgMh34V-JVbUQ_jHTJQ";
 
-// SEC-05: Uso forzado de sessionStorage
+// SEC-05: Uso forzado de sessionStorage para aislar el ciclo de vida del token
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: { storage: window.sessionStorage }
 });
 
 let currentUser = null;
 let filtroActual = "recientes";
+let maquinaSeleccionada = "todas";
 let canalMonitoreo = null;
 
 // ==========================================================================
@@ -32,11 +33,19 @@ document.addEventListener("DOMContentLoaded", async () => {
     btn.addEventListener("click", () => aplicarFiltro(btn.dataset.filtro));
   });
 
+  const selectMaquina = document.getElementById("filtroMaquina");
+  if (selectMaquina) {
+    selectMaquina.addEventListener("change", (e) => {
+      maquinaSeleccionada = e.target.value;
+      cargarLecturas(filtroActual);
+    });
+  }
+
   const { data: { session } } = await supabaseClient.auth.getSession();
   actualizarUIAuth(session);
 
   supabaseClient.auth.onAuthStateChange((event, session) => {
-    // SEC-05: Evitar recargas innecesarias de UI
+    // SEC-05: Evitar recargas innecesarias de UI en eventos de refresco
     if (event === "TOKEN_REFRESHED") return; 
     actualizarUIAuth(session);
   });
@@ -48,11 +57,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 function cambiarPestana(tabId, btnElement) {
   document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-  document.getElementById(tabId).classList.add('active');
-  btnElement.classList.add('active');
+  
+  const target = document.getElementById(tabId);
+  if (target) target.classList.add('active');
+  if (btnElement) btnElement.classList.add('active');
 }
 
-// SEC-03: Función segura para consultar rol en BD (RLS-backed)
+// SEC-03: Consulta validada por la política RLS en la tabla perfiles
 async function obtenerRol() {
   const { data, error } = await supabaseClient.from("perfiles").select("rol").maybeSingle();
   return error || !data ? null : data.rol;
@@ -67,9 +78,16 @@ async function actualizarUIAuth(session) {
 
   if (!session) {
     currentUser = null;
+    maquinaSeleccionada = "todas";
+    filtroActual = "recientes";
+
+    const selectMaquina = document.getElementById("filtroMaquina");
+    if (selectMaquina) selectMaquina.value = "todas";
+
     loginPanel.classList.remove("hidden");
     dashboardPanel.classList.add("hidden");
     authSection.replaceChildren(); // SEC-01: Evitar innerHTML=""
+    
     statusElem.innerText = "● Esperando autenticación...";
     statusElem.style.color = "var(--text-muted)";
     
@@ -80,22 +98,22 @@ async function actualizarUIAuth(session) {
 
     if (canalMonitoreo) supabaseClient.removeChannel(canalMonitoreo);
 
-    // SEC-05: Limpiar el DOM al salir
+    // SEC-05: Limpiar el estado visual del DOM al salir
     document.getElementById("lecturasTableBody").replaceChildren();
     ["MOT-A1", "MOT-B2", "MOT-C3"].forEach(m => {
       const tempEl = document.getElementById(`temp-${m}`);
       const vibEl = document.getElementById(`vib-${m}`);
       const estEl = document.getElementById(`estado-${m}`);
-      if(tempEl) tempEl.textContent = "-- °C";
-      if(vibEl) vibEl.textContent = "Vibración: -- mm/s";
-      if(estEl) estEl.textContent = "--";
+      if (tempEl) tempEl.textContent = "-- °C";
+      if (vibEl) vibEl.textContent = "Vibración: -- mm/s";
+      if (estEl) estEl.textContent = "--";
     });
     document.getElementById("alertBanner").classList.add("hidden");
 
   } else {
     currentUser = session.user;
     
-    // SEC-03: Obtener rol validado de la tabla perfiles
+    // SEC-03: Obtener rol validado
     const userRole = await obtenerRol();
     if (!userRole) {
       await ejecutarLogout();
@@ -114,7 +132,7 @@ async function actualizarUIAuth(session) {
     
     cambiarPestana('tab-vivo', document.querySelector('.tab-btn[data-tab="tab-vivo"]')); 
 
-    // SEC-01: Construcción segura del DOM (sin innerHTML)
+    // SEC-01: Manipulación estructurada del DOM libre de sinks XSS
     authSection.replaceChildren();
     
     const wrap = document.createElement("div");
@@ -182,6 +200,12 @@ function aplicarFiltro(tipo) {
 async function cargarLecturas(filtro = "recientes") {
   let query = supabaseClient.from("lecturas_maquina").select("*");
 
+  // Filtrado compuesto: Máquina seleccionada
+  if (maquinaSeleccionada && maquinaSeleccionada !== "todas") {
+    query = query.eq("codigo_maquina", maquinaSeleccionada);
+  }
+
+  // Filtrado operativo
   switch (filtro) {
     case "temp80":
       query = query.gt("temperatura", 80.0).order("temperatura", { ascending: false });
@@ -212,7 +236,6 @@ async function cargarLecturas(filtro = "recientes") {
     return;
   }
 
-  // Ahora renderTabla es asíncrona porque solicita URLs firmadas
   await renderTabla(data); 
 
   if (data && data.length > 0) {
@@ -220,7 +243,7 @@ async function cargarLecturas(filtro = "recientes") {
   }
 }
 
-// SEC-01 y SEC-04: Renderizado seguro (textContent) y URLs firmadas
+// SEC-01 y SEC-04: Renderizado seguro (textContent) y URLs firmadas de bucket privado
 async function renderTabla(lecturas) {
   const tbody = document.getElementById("lecturasTableBody");
   tbody.replaceChildren();
@@ -230,13 +253,13 @@ async function renderTabla(lecturas) {
     const td = document.createElement("td");
     td.colSpan = 6;
     td.style.cssText = "padding:1.5rem;text-align:center;color:var(--text-muted)";
-    td.textContent = "No hay lecturas registradas.";
+    td.textContent = "No hay lecturas registradas para el filtro seleccionado.";
     tr.appendChild(td);
     tbody.appendChild(tr);
     return;
   }
 
-  // Generar URLs firmadas en lote (bucket privado)
+  // Generar URLs firmadas de duración limitada (300 s)
   const paths = lecturas.map(l => l.evidencia_path).filter(Boolean);
   const urls = {};
   if (paths.length) {
@@ -247,7 +270,7 @@ async function renderTabla(lecturas) {
   const celda = (texto, estilo = "") => {
     const td = document.createElement("td");
     td.style.cssText = "padding:0.6rem;" + estilo;
-    td.textContent = texto; // Protege contra XSS (nunca interpreta HTML)
+    td.textContent = texto; // Protege contra inyecciones XSS
     return td;
   };
 
@@ -271,7 +294,7 @@ async function renderTabla(lecturas) {
       a.href = url;
       a.textContent = "Ver Foto";
       a.target = "_blank";
-      a.rel = "noopener noreferrer"; // Buena práctica de seguridad en _blank
+      a.rel = "noopener noreferrer";
       a.style.cssText = "color:var(--color-cyan);text-decoration:underline;";
       tdFoto.appendChild(a);
     } else {
@@ -297,7 +320,7 @@ function actualizarConsolaKPI(lecturasTotales) {
   };
 
   for (let l of lecturasTotales) {
-    if (ultimasLecturas[l.codigo_maquina] === null) {
+    if (Object.prototype.hasOwnProperty.call(ultimasLecturas, l.codigo_maquina) && ultimasLecturas[l.codigo_maquina] === null) {
       ultimasLecturas[l.codigo_maquina] = l;
     }
   }
@@ -308,23 +331,28 @@ function actualizarConsolaKPI(lecturasTotales) {
   Object.keys(ultimasLecturas).forEach(maquina => {
     const data = ultimasLecturas[maquina];
     if (data) {
-      document.getElementById(`temp-${maquina}`).innerText = `${Number(data.temperatura).toFixed(1)} °C`;
-      document.getElementById(`vib-${maquina}`).innerText = `Vibración: ${Number(data.nivel_vibracion).toFixed(2)} mm/s`;
-      
+      const tempElement = document.getElementById(`temp-${maquina}`);
+      const vibElement = document.getElementById(`vib-${maquina}`);
       const estadoElem = document.getElementById(`estado-${maquina}`);
-      estadoElem.innerText = data.estado.toUpperCase();
 
-      const tempVal = Number(data.temperatura);
-      const esCritico = tempVal > 80 || data.estado.toLowerCase().includes("alerta") || data.estado.toLowerCase().includes("falla");
+      if (tempElement) tempElement.innerText = `${Number(data.temperatura).toFixed(1)} °C`;
+      if (vibElement) vibElement.innerText = `Vibración: ${Number(data.nivel_vibracion).toFixed(2)} mm/s`;
       
-      if (esCritico) {
-        estadoElem.style.color = "#ef4444";
-        document.getElementById(`temp-${maquina}`).style.color = "#ef4444";
-        hayAlertaGlobal = true;
-        mensajeAlerta += `[${maquina}: ${data.estado}] `;
-      } else {
-        estadoElem.style.color = "#10b981";
-        document.getElementById(`temp-${maquina}`).style.color = "var(--text-color)";
+      if (estadoElem) {
+        estadoElem.innerText = data.estado.toUpperCase();
+
+        const tempVal = Number(data.temperatura);
+        const esCritico = tempVal > 80 || data.estado.toLowerCase().includes("alerta") || data.estado.toLowerCase().includes("falla");
+        
+        if (esCritico) {
+          estadoElem.style.color = "#ef4444";
+          if (tempElement) tempElement.style.color = "#ef4444";
+          hayAlertaGlobal = true;
+          mensajeAlerta += `[${maquina}: ${data.estado}] `;
+        } else {
+          estadoElem.style.color = "#10b981";
+          if (tempElement) tempElement.style.color = "var(--text-color)";
+        }
       }
     }
   });
@@ -332,11 +360,13 @@ function actualizarConsolaKPI(lecturasTotales) {
   const alertBanner = document.getElementById("alertBanner");
   const alertText = document.getElementById("alertText");
 
-  if (hayAlertaGlobal) {
-    alertBanner.classList.remove("hidden");
-    alertText.innerText = `¡ANOMALÍA DETECTADA! ${mensajeAlerta}`;
-  } else {
-    alertBanner.classList.add("hidden");
+  if (alertBanner && alertText) {
+    if (hayAlertaGlobal) {
+      alertBanner.classList.remove("hidden");
+      alertText.innerText = `¡ANOMALÍA DETECTADA! ${mensajeAlerta}`;
+    } else {
+      alertBanner.classList.add("hidden");
+    }
   }
 }
 
@@ -363,7 +393,7 @@ async function registrarLectura(e) {
     let evidenciaPath = null;
     const fileInput = document.getElementById("evidenciaFile");
 
-    // SEC-04 y SEC-08: Validación estricta y guardado de ruta (no URL pública)
+    // SEC-04 y SEC-08: Validación estricta y aislamiento por ruta <uid>/<uuid>.<ext>
     if (fileInput.files.length > 0) {
       const file = fileInput.files[0];
       const EXT = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" };
